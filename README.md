@@ -1,55 +1,74 @@
 # Aerovate
 
-Event website inspired by the visual direction and event experience of [ROVARIS](https://rovaris2026.vercel.app/).
+Frontend foundation for the Aerovate event website. Member 1's shared design, routing, responsive header and footer are implemented; six separate starter modules let the remaining members develop in parallel.
 
-## Scope
+**Primary:** `#34506D` · **Secondary:** `#FFFFFF` · Dark navy surfaces, pale blue accents, Space Grotesk headings and DM Sans body text.
 
-First release: landing page, photo gallery, Thrust Tech information, and games. Further features will be agreed later. Use Aerovate branding, copy, and approved assets; event dates, venue, rules, and game concepts still need confirmation.
+## Run locally
 
-This repository currently contains the team plan only. Website implementation has not started.
+Use Node.js 24 LTS (see `.nvmrc`) and npm. Dependencies are pinned in `package-lock.json`.
 
-## Seven-member work allocation
+```sh
+npm ci
+npm run dev
+```
 
-Names and GitHub usernames are pending. Member numbers are placeholders, and branches are named by responsibility so they can remain stable after assignment.
+Open the local URL printed by Vite. No environment variables, API keys or backend services are required.
 
-| Member | Branch | Ownership and deliverables |
-| --- | --- | --- |
-| 1 | `team/01-foundation-ui` | Project setup and shared UI: agree the framework with the team, establish the app structure and routes, design tokens, responsive navigation, footer, reusable buttons/cards, and shared loading/error states. Document setup and component usage. |
-| 2 | `team/02-landing-page` | Landing page: Aerovate hero artwork/layout, event overview, confirmed date/venue, call to action, sponsor area, and restrained motion. Build responsive sections using Member 1's shared components. |
-| 3 | `team/03-photo-gallery` | Photo gallery: responsive grid, image metadata/captions, categories if needed, keyboard-accessible lightbox, lazy loading, optimized images, and empty/error states. Own gallery assets and content. |
-| 4 | `team/04-thrust-tech-info` | Thrust Tech information: overview, technical explanations and diagrams, confirmed rules/schedule, FAQs, and contact links. Verify content with the event team and maintain it separately from presentation. |
-| 5 | `team/05-games-hub-game-one` | Games hub and first game: game selection, instructions, first playable game, keyboard/touch controls, pause/restart, and score display. Agree the game interface with Member 6 before implementation. |
-| 6 | `team/06-game-two-score-system` | Second game and shared game utilities: second playable game, timing/scoring helpers, result screen, and local best-score storage. Coordinate controls and result format with Member 5. Game concepts are to be decided; online leaderboards/accounts are outside the initial scope. |
-| 7 | `team/07-integration-quality-release` | Integration and release: build checks/CI, cross-page navigation checks, mobile/browser QA, accessibility and performance review, metadata/SEO, deployment configuration, and release checklist. Maintain the future-feature backlog. Each feature owner fixes defects in their own area. |
+```sh
+npm test           # navigation, routes, focus, and rocket contract
+npm run typecheck  # TypeScript checks
+npm run build      # typecheck + production bundle in dist/
+npm run preview    # serve the production build
+```
 
-## Ownership boundaries
+## Ready to use
 
-- Member 1 owns shared layout, global styling, routing, and dependency changes; coordinate changes to those files before editing.
-- Members 2-4 own their feature pages, feature styles, and content/assets.
-- Members 5-6 agree one game contract (start, pause, reset, finish, score/result) and keep each game's implementation separate.
-- Member 7 owns CI and release configuration and coordinates integration; feature owners still test and review their own work.
-- Decide exact folders and interfaces in Member 1's first setup PR. Avoid unrelated edits to another member's area.
+- React + TypeScript + Vite with locally bundled fonts.
+- Responsive Stellar-inspired floating header, active links, mobile menu with Escape/focus handling and outside-click dismissal, and skip link.
+- Home section navigation, `/pocs` route, unknown-page fallback, titles and route focus.
+- Footer with email contact, clearly labelled Stellar social channels, configurable developer credits and back-to-top link.
+- Design tokens, buttons, cards, sections, loading/empty/error states and reduced-motion styling.
+- Dedicated feature folders for all seven members and a documented rocket/scroll interface.
+- Build/tests in GitHub Actions and Vercel SPA fallback for direct `/pocs` visits.
 
-## Delivery order
+## Feature status
 
-1. Confirm the visual direction, framework, routes, content requirements, and game concepts. Member 1 opens the setup/shared-UI PR; other members prepare content, layouts, and game prototypes in parallel.
-2. Merge the foundation into `main`. Every member updates their branch from `main` before integrating feature code.
-3. Merge small feature PRs for the landing page, gallery, information page, and games. Member 7 starts integration checks as soon as the foundation exists.
-4. Complete responsive, keyboard, touch, image-loading, navigation, and game-reset/score checks. Resolve defects, review the release checklist, and publish when the team is ready.
+| Feature | Status |
+| --- | --- |
+| Foundation, header, footer | Implemented by Member 1 |
+| Landing and event description | Starter composition; Member 2 finalises copy/layout |
+| Rocket | Static SVG fallback; Member 3 implements 3D |
+| Space and scroll | Static background and motion handoff; Member 4 adds scroll effects |
+| About Thrust Tech | Placeholder for Member 5 |
+| Past-year POCs | Working route and empty data model for Member 6 |
+| Glimpses | Empty-state section and photo data model for Member 7 |
 
-## Branch and pull-request workflow
+Games and backend work are deferred. Dates, venue, POC names and event photographs have not been invented. This is a foundation preview, not a launch-ready event announcement.
 
-- `main` is the shared integration branch; keep it working. The seven member branches start from the same planning commit.
-- Work in your assigned branch and open focused pull requests into `main`.
-- Pull the latest `main` into your branch regularly, especially after the foundation or shared UI changes.
-- Request at least one teammate review and pass available checks before merging. These are team conventions; repository protection rules are not configured by this plan.
-- Do not force-push shared branches. Coordinate shared-file edits and resolve conflicts with the relevant owner.
-- A branch name documents ownership but does not grant repository access. The owner must invite members separately once their usernames are available.
+## Team workflow
 
-## Definition of done
+Read **[the team handoff](docs/TEAM_HANDOFF.md)** for ownership, existing branch names, setup order, shared components, design tokens and the rocket interface. After the foundation merges into `main`, update your assigned branch and work in your own feature folder. Coordinate global styles, routing and dependencies with Member 1.
 
-Each feature works at mobile and desktop sizes, supports relevant keyboard/touch input, uses shared UI, handles applicable empty/loading/error states, has no known blocking console errors, and includes a short PR description with verification steps. New games must restart cleanly and report scores consistently.
+```
+src/
+  app/                    # composition, routes, focus and error boundary
+  components/layout/      # Member 1: header/footer
+  components/ui/          # Member 1: shared building blocks
+  config/                 # Member 1: navigation, contacts and credits
+  styles/                 # Member 1: global styles and tokens
+  features/landing/       # Member 2
+  features/rocket/        # Member 3
+  features/space/         # Member 4
+  features/thrust-tech/   # Member 5
+  features/pocs/          # Member 6
+  features/glimpses/      # Member 7
+  test/                   # shared integration checks
+public/assets/            # approved rocket, POC and gallery assets
+```
 
-## Future backlog (not committed scope)
+## Hosting
 
-Potential additions such as registration, an event schedule, admin/content tools, online leaderboards, or additional games must be prioritized before implementation. Member 7 tracks decisions; assign each approved feature a clear owner and acceptance criteria.
+`npm run build` generates `dist/`. Vercel configuration is provided; hosting requires a connected Vercel project. Other static hosts must serve `index.html` for non-file routes such as `/pocs`. No deployment is performed by this foundation change.
+
+References: [VIT Stellar](https://vitstellar.vercel.app/) for header/navigation and [ROVARIS](https://rovaris2026.vercel.app/) for the event-site direction. Aerovate uses its own implementation and palette.
