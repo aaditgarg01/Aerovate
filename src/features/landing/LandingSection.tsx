@@ -9,7 +9,7 @@ export function LandingSection() {
   return <section id="home" className="hero" tabIndex={-1} aria-labelledby="hero-title">
     <div className="hero-stars" aria-hidden="true" />
     <div className="hero-inner"><div className="hero-copy"><span className="eyebrow"><span className="status-dot" />Curiosity is our launchpad</span>
-      <h1 id="hero-title">Ideas<br />take <span className="hero-outline">flight.</span></h1>
+      <h1 id="hero-title">Ideas{' '}<br />take <span className="hero-outline">flight.</span></h1>
       <p>AEROVATE / THE ROCKETRY EXPERIENCE</p><p className="hero-description">For minds that look up.<br />And hands that want to build.</p>
       <div className="hero-actions"><ActionLink to="/#event">Explore Aerovate</ActionLink><ActionLink to="/#thrust-tech" variant="outline">Meet Thrust Tech</ActionLink></div>
     </div><SpaceExperience /></div>
