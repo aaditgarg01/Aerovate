@@ -25,7 +25,7 @@ npm run preview    # serve the production build
 ## Ready to use
 
 - React + TypeScript + Vite with locally bundled fonts.
-- Responsive Stellar-inspired floating header, active links, mobile menu with Escape/focus handling and outside-click dismissal, and skip link.
+- Responsive integrated header, transparent over the hero and solid after scrolling, active links, mobile menu with Escape/focus handling and outside-click dismissal, and skip link.
 - Home section navigation, `/pocs` route, unknown-page fallback, titles and route focus.
 - Footer with email contact, clearly labelled Stellar social channels, configurable developer credits and back-to-top link.
 - Design tokens, buttons, cards, sections, loading/empty/error states and reduced-motion styling.
@@ -37,14 +37,14 @@ npm run preview    # serve the production build
 | Feature | Status |
 | --- | --- |
 | Foundation, header, footer | Implemented by Member 1 |
-| Landing and event description | Starter composition; Member 2 finalises copy/layout |
-| Rocket | Static SVG fallback; Member 3 implements 3D |
-| Space and scroll | Static background and motion handoff; Member 4 adds scroll effects |
+| Landing and event description | Reference-matched sunset hero; Member 2 finalises event content |
+| Rocket | Photographed hero rocket; retained SVG fallback and contract for Member 3’s 3D work |
+| Space and scroll | Module retained for Member 4; currently unmounted in the photographic hero |
 | About Thrust Tech | Placeholder for Member 5 |
 | Past-year POCs | Working route and empty data model for Member 6 |
 | Glimpses | Empty-state section and photo data model for Member 7 |
 
-Games and backend work are deferred. Dates, venue, POC names and event photographs have not been invented. This is a foundation preview, not a launch-ready event announcement.
+Games and backend work are deferred. Dates, venue, POC names and historical event photographs have not been invented. The hero is a generated design background derived from the supplied reference, not documentary event photography. This is a foundation preview, not a launch-ready event announcement.
 
 ## Team workflow
 

@@ -47,11 +47,11 @@ interface RocketSceneProps {
 }
 ```
 
-Member 4's `SpaceExperience` owns scroll measurement, background and motion preferences. Use `clampProgress` to normalise values. The starter supplies `0`, allowing both members to develop independently. Coordinate moving `.hero-stars` from the landing CSS into the space module with Member 2.
+Member 4's `SpaceExperience` owns scroll measurement, background and motion preferences. Use `clampProgress` to normalise values. The starter supplies `0`, allowing both members to develop independently. The current sunset hero uses a static photographic background. `SpaceExperience` and `RocketScene` remain available but are not mounted. Member 2 reserves `.hero-rocket-stage` for future integration. Members 2–4 must agree on a background without a photographed rocket before mounting the 3D scene, to avoid showing two rockets.
 
 Member 3's `RocketScene` consumes these props. Avoid document-level scroll listeners in the renderer. Use a stable view for reduced motion, dispose of graphics resources on unmount, and lazy-load model work. Preserve the starter SVG for unavailable WebGL, loading errors and constrained devices.
 
-No 3D library is installed yet. Member 3 proposes dependencies once the model format is chosen; Member 1 coordinates package/lockfile changes. The current rocket is an original static illustration, not a completed 3D model.
+No 3D library is installed yet. Member 3 proposes dependencies once the model format is chosen; Member 1 coordinates package/lockfile changes. The retained fallback is an original static SVG illustration; the rocket visible in the current hero is part of the background image. Neither is a completed 3D model.
 
 ## Shared components
 
@@ -63,7 +63,7 @@ Import `Section`, `ActionLink`, `Button`, `Card`, `EmptyState` and `LoadingState
 </Section>
 ```
 
-Tokens are in `src/styles/tokens.css`: primary `#34506D`, secondary `#FFFFFF`, background `#0B1521`, surface `#132332`, accent `#BBD7ED`, muted text `#B0BDCB`. Headings use Space Grotesk and body uses DM Sans; fonts are bundled locally. Content width is 1280px, mobile navigation starts below 960px, and small-screen adjustments below 600px. Keep touch targets at least 44px and preserve focus indicators/reduced motion.
+Tokens are in `src/styles/tokens.css`: primary `#34506D`, secondary `#FFFFFF`, background `#0B1521`, surface `#132332`, accent `#BBD7ED`, hero highlight `#63D5EF`, muted text `#B0BDCB`. Section headings use Space Grotesk; the hero and body use DM Sans; fonts are bundled locally. Content width is 1280px, mobile navigation starts below 960px, and small-screen adjustments below 600px. Keep touch targets at least 44px and preserve focus indicators/reduced motion.
 
 ## Content
 
@@ -83,3 +83,7 @@ Tokens are in `src/styles/tokens.css`: primary `#34506D`, secondary `#FFFFFF`, b
 5. Member 1 coordinates integration; each owner fixes their feature's defects.
 
 Before launch, supply approved content and credits, confirm contact destinations, check navigation/page refreshes, optimise model/photo assets, and check reduced motion. Vercel's SPA fallback is included. Other hosts must route non-file requests to `index.html`. This foundation does not create a hosting deployment.
+
+## Sunset hero reference
+
+The hero follows the supplied sunset reference with live HTML text, a transparent header at the top, cyan highlights, and an optimised photographic background. The header becomes solid after scrolling and on secondary pages. Mobile uses a stacked composition to keep the headline and rocket readable. See [hero asset notes](HERO_ASSET.md) for image provenance.
