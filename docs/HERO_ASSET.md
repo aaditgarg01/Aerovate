@@ -18,3 +18,12 @@ Use case: precise-object-edit. Asset type: clean photographic background for the
 ## Validation
 
 Seven integration tests passed. TypeScript and Vite production build passed. Desktop and 390 × 844 phone layouts checked: no horizontal overflow, readable headline, mobile menu Escape handling, POCs navigation and direct refresh. Browser console showed no errors or warnings.
+
+
+## Rocket lettering correction — 16 October 2026
+
+Built-in ImageGen was used to correct the vertical rocket label to **VIT STELLAR**, including both L letters. The selected output is `exec-8844812e-2fb4-484e-b8fe-00728740fdaf.png`. The existing WebP and JPEG website assets were replaced with quality-85 encodings; the composition and dimensions remain 1740 × 904.
+
+Exact edit prompt:
+
+Use case: text-localization. Input image 1 is the exact edit target, the existing Aerovate website hero background. Correct ONLY the black lettering physically printed vertically on the white rocket body. The exact text must be "VIT STELLAR", spelled V I T, a small gap, S T E L L A R — make sure STELLAR has TWO consecutive L letters. Stack the upright letters top-to-bottom as V, I, T, gap, S, T, E, L, L, A, R. Fit the full text neatly on the same white panel, with realistic black painted lettering following the existing body perspective. Preserve the rocket shape, white/black/red paint, launch rail and tripod, sunset sky, clouds, trees, buildings, field, foreground notebook and tools, composition, lighting, image framing and aspect ratio exactly. Do not add UI or any other text. Change only the misspelled rocket label to the correctly spelled VIT STELLAR. Opaque photographic output.
