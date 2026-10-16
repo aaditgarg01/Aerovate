@@ -2,13 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { navigation } from '../../config/site';
 import { Icon } from '../ui/Icon';
-import './layout.css';
+import './header.css';
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const header = useRef<HTMLElement>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const update = () => setIsScrolled(window.scrollY > 32);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -31,11 +39,13 @@ export function Header() {
   }, [open]);
 
   const navLinks = navigation.map(({ label, to }) => {
-    const active = `${location.pathname}${location.hash}` === to;
+    const active = to === '/'
+      ? location.pathname === '/' && (!location.hash || location.hash === '#home')
+      : `${location.pathname}${location.hash}` === to;
     return <Link key={to} to={to} onClick={() => setOpen(false)} aria-current={active ? 'location' : undefined}>{label}</Link>;
   });
 
-  return <header className="header" ref={header}>
+  return <header className={`header ${location.pathname === '/' && !isScrolled ? 'header--hero' : ''}`} ref={header}>
     <Link className="brand" to="/" onClick={() => setOpen(false)} aria-label="Aerovate home">
       <img src="/favicon.svg" alt="" width="36" height="36" /><span>AEROVATE<span className="brand-subtitle">A journey beyond</span></span>
     </Link>

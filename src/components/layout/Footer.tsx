@@ -1,3 +1,4 @@
+import './layout.css';
 import { Link } from 'react-router';
 import { site } from '../../config/site';
 import { Icon } from '../ui/Icon';
