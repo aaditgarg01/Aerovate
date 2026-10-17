@@ -6,8 +6,10 @@ import './space.css';
 /** Elements that fade/slide in the first time they enter the viewport. */
 const REVEAL_SELECTOR = 'main .section, .footer-top, .footer-wordmark';
 
-function prefersReducedMotion() {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Motion needs a real browser (IntersectionObserver) and a visitor who allows it. */
+function motionAllowed() {
+  if (typeof IntersectionObserver === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 /**
@@ -23,7 +25,7 @@ export function ScrollMotion() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (prefersReducedMotion()) return;
+    if (!motionAllowed()) return;
     root.classList.add('motion-ready');
 
     const hero = document.getElementById('home');
@@ -72,7 +74,7 @@ export function ScrollMotion() {
   }, [pathname]);
 
   useEffect(() => {
-    if (prefersReducedMotion() || typeof IntersectionObserver === 'undefined') return;
+    if (!motionAllowed()) return;
     const root = document.documentElement;
     const targets = Array.from(document.querySelectorAll<HTMLElement>(REVEAL_SELECTOR));
     const reveal = (element: Element) => element.classList.add('is-revealed');
