@@ -13,8 +13,25 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
     const root = rootRef.current;
     if (!root) return;
 
-    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const hero = root.querySelector<HTMLElement>("#tt-hero")!;
+    const showStaticContent = () => {
+      root.classList.remove("tt-js");
+      hero.classList.add("tt-go");
+      root.querySelectorAll(".tt-node").forEach(node => node.classList.add("tt-lit"));
+    };
+    // Keep the section readable in browsers and test environments without graphics APIs.
+    const trail = root.querySelector<SVGPathElement>("#tt-tpath");
+    if (typeof IntersectionObserver === "undefined" || typeof trail?.getTotalLength !== "function") {
+      showStaticContent();
+      return;
+    }
+    const c = root.querySelector<HTMLCanvasElement>("#tt-stars")!;
+    const x = c.getContext("2d");
+    if (!x) {
+      showStaticContent();
+      return;
+    }
+    const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cleanups: Array<() => void> = [];
 
     /* hero sequence: plays once when first scrolled into view, and again only when the navbar link is clicked */
@@ -51,8 +68,6 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
     cleanups.push(() => document.removeEventListener("click", onNavClick));
 
     /* stars: sparse, slow twinkle and drift, paused when off-screen */
-    const c = root.querySelector<HTMLCanvasElement>("#tt-stars")!;
-    const x = c.getContext("2d")!;
     type Star = { x: number; y: number; r: number; a: number; p: number; s: number };
     let S: Star[] = [];
     let W = 0;
@@ -296,7 +311,7 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
   }, []);
 
   return (
-    <div className="tt tt-js" id={id} ref={rootRef}>
+    <div className="tt tt-js" id={id} ref={rootRef} tabIndex={-1} role="region" aria-labelledby={`${id}-title`}>
       <section className="tt-hero" id="tt-hero">
         <div className="tt-haze"></div>
         <canvas id="tt-stars" aria-hidden="true"></canvas>
@@ -312,10 +327,10 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
 
         <div className="tt-grid">
           <p className="tt-eyebrow tt-rise tt-r0">BEHIND THE EXPERIENCE</p>
-          <h1 className="tt-heading" aria-label="Meet Thrust Tech.">
+          <h2 id={`${id}-title`} className="tt-heading" aria-label="Meet Thrust Tech.">
             <span className="tt-ln tt-l1"><span>Meet</span></span>
             <span className="tt-ln tt-l2"><span>Thrust Tech.</span></span>
-          </h1>
+          </h2>
 
           <div className="tt-emblem" id="tt-emblem" aria-hidden="true">
             <div className="tt-glow"></div>

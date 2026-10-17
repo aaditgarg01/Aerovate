@@ -51,8 +51,12 @@ describe('Shared foundation', () => {
 
   it('renders every event section in one continuous home-page flow', () => {
     renderAt();
-    expect(Array.from(document.querySelectorAll('main section')).map(section => section.id)).toEqual(['home', 'thrust-tech', 'event', 'pocs', 'glimpses']);
+    expect(Array.from(document.querySelectorAll('main #home, main #thrust-tech, main #event, main #pocs, main #glimpses')).map(section => section.id)).toEqual(['home', 'thrust-tech', 'event', 'pocs', 'glimpses']);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(document.getElementById('thrust-tech')?.closest('.page-container')).toBeNull();
+    expect(document.getElementById('thrust-tech')?.closest('.page-sheet')).not.toBeNull();
+    expect(document.getElementById('thrust-tech')).not.toHaveClass('tt-js');
+    expect(screen.getByRole('heading', { level: 2, name: 'Meet Thrust Tech.' })).toBeInTheDocument();
     expect(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Past POCs' })).toHaveAttribute('href', '/#pocs');
   });
 
@@ -71,7 +75,7 @@ describe('Shared foundation', () => {
   });
 
   it('honours reduced motion when navigating to sections', async () => {
-    vi.mocked(window.matchMedia).mockImplementationOnce(query => ({ matches: query.includes('prefers-reduced-motion'), media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(), addListener: vi.fn(), removeListener: vi.fn() }));
+    vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: query.includes('prefers-reduced-motion'), media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(), addListener: vi.fn(), removeListener: vi.fn() }));
     renderAt('/#contact');
     await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'instant', block: 'start' }));
   });
