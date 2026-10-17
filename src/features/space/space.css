@@ -1,0 +1,151 @@
+/* ───────────────────────── Scroll motion (Member 4) ─────────────────────────
+   Everything here is gated behind `.motion-ready` / `.reveal-ready`, which
+   ScrollMotion only adds when JS runs and the visitor allows motion. Without
+   those classes the page renders exactly as the static design. */
+
+:root { --ease-launch: cubic-bezier(.2, .7, .15, 1); }
+
+/* Trajectory bar: page progress along the very top edge. */
+.scroll-trajectory {
+  --page-progress: 0;
+  position: fixed;
+  z-index: 40;
+  inset: 0 0 auto;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .4s;
+}
+.motion-ready .scroll-trajectory { opacity: 1; }
+.scroll-trajectory span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--page-progress));
+  background: linear-gradient(90deg, #34506d, var(--color-accent) 70%, var(--color-highlight));
+  box-shadow: 0 0 12px #63d5ef80;
+}
+
+/* ── Hero launch sequence ──
+   The hero pins while the rest of the page slides over it like a curtain.
+   As --hero-progress runs 0 → 1: the camera pushes in and tilts up toward
+   the rocket, dusk turns to night, stars come out, and the headline lifts off. */
+.motion-ready .hero {
+  --p: var(--hero-progress, 0);
+  position: sticky;
+  top: var(--hero-stick, 0px);
+  z-index: 0;
+}
+.motion-ready .hero[data-covered] { visibility: hidden; }
+
+.motion-ready .hero-backdrop img {
+  transform-origin: 74% 35%;
+  transform: translate3d(0, calc(var(--p) * 7%), 0) scale(calc(1 + var(--p) * .16));
+  will-change: transform;
+}
+
+.hero-night, .hero-stars { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+.hero-night { z-index: 0; background: linear-gradient(180deg, #03080f 0%, #08111c 55%, var(--color-background) 100%); }
+.hero-stars { z-index: 1; overflow: hidden; }
+.hero-stars span { position: absolute; top: 0; left: 0; width: 1px; height: 1px; border-radius: 50%; }
+.hero-stars__bright { width: 2px !important; height: 2px !important; animation: hero-twinkle 3.6s ease-in-out infinite alternate; }
+
+.motion-ready .hero-night { opacity: calc(var(--p) * 1.15 - .08); }
+.motion-ready .hero-stars {
+  opacity: calc(var(--p) * 1.9 - .35);
+  transform: translate3d(0, calc(var(--p) * -6svh), 0);
+}
+
+.hero-inner { z-index: 2; }
+
+.motion-ready .hero-copy > * {
+  transform: translate3d(0, calc(var(--p) * -34svh * var(--depth, 1)), 0);
+  opacity: calc(1 - var(--p) * 2.1 * var(--depth, 1));
+  will-change: transform, opacity;
+}
+.motion-ready .hero-copy > .hero-eyebrow { --depth: .7; }
+.motion-ready .hero-copy > h1 { --depth: 1; }
+.motion-ready .hero-copy > .hero-kicker { --depth: 1.2; }
+.motion-ready .hero-copy > .hero-description { --depth: 1.35; }
+
+/* "Scroll to launch" cue */
+.hero-scroll-cue {
+  position: absolute;
+  left: 0;
+  bottom: 56px;
+  display: none;
+  align-items: center;
+  gap: 16px;
+  color: #d5e3ee;
+  font: 500 10px var(--font-heading);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 10px #0b1521;
+}
+.motion-ready .hero-scroll-cue { display: inline-flex; opacity: calc(1 - var(--p) * 8); }
+.hero-scroll-cue__track { position: relative; width: 1px; height: 46px; background: #ffffff38; overflow: hidden; }
+.hero-scroll-cue__track i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 14px;
+  background: var(--color-highlight);
+  box-shadow: 0 0 8px var(--color-highlight);
+  animation: hero-cue 1.8s var(--ease-launch) infinite;
+}
+
+/* The page content becomes a sheet that rises over the pinned hero. */
+.page-sheet { position: relative; z-index: 1; background: var(--color-background); }
+.motion-ready .page-sheet {
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -30px 60px #03080f70, inset 0 1px 0 #bbd7ed1f;
+}
+
+/* ── Section reveals ── */
+.reveal-ready .section { border-top-color: transparent; background: linear-gradient(var(--color-border), var(--color-border)) 0 0 / 0% 1px no-repeat; transition: background-size 1.2s var(--ease-launch); }
+.reveal-ready .section:first-child { background: none; }
+.reveal-ready .section.is-revealed { background-size: 100% 1px; }
+
+.reveal-ready .section .section-label,
+.reveal-ready .section .section-body > *,
+.reveal-ready .footer-top > *,
+.reveal-ready .footer-wordmark {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0);
+  transition: opacity .9s var(--ease-launch), transform 1.1s var(--ease-launch);
+  transition-delay: calc(var(--i, 0) * 110ms + 120ms);
+}
+.reveal-ready .section .section-label svg { transform: rotate(-120deg) scale(.4); transition: transform 1.2s var(--ease-launch) .35s; }
+.reveal-ready .section-body > :nth-child(1) { --i: 1; }
+.reveal-ready .section-body > :nth-child(2) { --i: 2; }
+.reveal-ready .section-body > :nth-child(3) { --i: 3; }
+.reveal-ready .section-body > :nth-child(n + 4) { --i: 4; }
+.reveal-ready .footer-top > :nth-child(2) { --i: 2; }
+.reveal-ready .footer-wordmark { letter-spacing: .02em; transition-property: opacity, transform, letter-spacing; transition-duration: .9s, 1.1s, 1.6s; }
+
+.reveal-ready .is-revealed .section-label,
+.reveal-ready .is-revealed .section-body > *,
+.reveal-ready .footer-top.is-revealed > *,
+.reveal-ready .footer-wordmark.is-revealed { opacity: 1; transform: none; }
+.reveal-ready .is-revealed .section-label svg { transform: none; }
+.reveal-ready .footer-wordmark.is-revealed { letter-spacing: -.06em; }
+
+@keyframes hero-twinkle { from { opacity: .35; } to { opacity: 1; } }
+@keyframes hero-cue { 0% { transform: translateY(-14px); } 100% { transform: translateY(46px); } }
+
+@media (max-width: 600px) {
+  .hero-scroll-cue { bottom: 28px; font-size: 8px; letter-spacing: .24em; }
+  .hero-scroll-cue__track { height: 34px; }
+  .motion-ready .page-sheet { border-radius: 20px 20px 0 0; }
+  .reveal-ready .section .section-label,
+  .reveal-ready .section .section-body > * { transform: translate3d(0, 24px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-ready .hero { position: relative; top: 0; }
+  .reveal-ready .section .section-label,
+  .reveal-ready .section .section-body > *,
+  .reveal-ready .footer-top > *,
+  .reveal-ready .footer-wordmark { opacity: 1; transform: none; }
+}

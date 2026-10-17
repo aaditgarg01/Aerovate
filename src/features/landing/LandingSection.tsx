@@ -1,6 +1,7 @@
 import { Section } from '../../components/ui/Primitives';
 import { Icon } from '../../components/ui/Icon';
 import { Link } from 'react-router';
+import { HeroScrollCue, HeroScrollLayers } from '../space/ScrollMotion';
 import './landing.css';
 
 /** Member 2 owns this starting composition and the final approved event copy. */
@@ -10,6 +11,7 @@ export function LandingSection() {
       <source srcSet="/assets/hero/aerovate-launch-sunset.webp" type="image/webp" />
       <img src="/assets/hero/aerovate-launch-sunset.jpg" alt="" width="1740" height="904" fetchPriority="high" decoding="async" />
     </picture>
+    <HeroScrollLayers />
     <div className="hero-inner">
       <div className="hero-copy">
         <span className="eyebrow hero-eyebrow"><span className="status-dot" />Curiosity is our launchpad</span>
@@ -19,6 +21,7 @@ export function LandingSection() {
       </div>
       {/* Reserved for the future model renderer; the photo supplies the current rocket. */}
       <div className="hero-rocket-stage" aria-hidden="true" />
+      <HeroScrollCue />
     </div>
   </section>;
 }
