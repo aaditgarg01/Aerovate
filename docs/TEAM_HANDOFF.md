@@ -32,6 +32,7 @@ Member 1 is Aadit Garg. Add the remaining approved names and profile links to `s
 - Past POCs lives on the home page at `/#pocs`, between the event and Glimpses. Member 6 owns the named `PocsSection` export in `src/features/pocs/PocsSection.tsx`. The old `/pocs` URL redirects to `/#pocs` for existing links.
 - `contact` belongs to the shared footer on every page; use `/#contact` in navigation.
 - Preserve `main-content` for the skip link and route focus management.
+- The header tracks section positions while scrolling, independently of the URL hash. Preserve the IDs in `src/config/site.ts`; the contact arrow/mobile contact link becomes active in the footer. Tracking must not move focus or add browser-history entries.
 - Use React Router `Link` for internal destinations, including `/#section`. Use anchors for external sites, email and phone links.
 - Do not add another header/footer inside feature pages; `App.tsx` composes the shared layout.
 
