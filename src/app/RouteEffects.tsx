@@ -4,7 +4,7 @@ import { useLocation } from 'react-router';
 export function RouteEffects() {
   const { pathname, hash, key } = useLocation();
   useEffect(() => {
-    document.title = pathname === '/pocs' ? 'Past POCs — Aerovate' : pathname === '/' ? 'Aerovate — Ideas take flight' : 'Page not found — Aerovate';
+    document.title = pathname === '/' ? 'Aerovate — Ideas take flight' : 'Page not found — Aerovate';
     const frame = requestAnimationFrame(() => {
       let id = '';
       try { id = decodeURIComponent(hash.slice(1)); } catch { /* Invalid hash falls back to the page start. */ }

@@ -18,8 +18,8 @@ export const navigation = [
   { label: 'Home', to: '/' },
   { label: 'Thrust Tech', to: '/#thrust-tech' },
   { label: 'The event', to: '/#event' },
-  { label: 'Past POCs', to: '/pocs' },
+  { label: 'Past POCs', to: '/#pocs' },
   { label: 'Glimpses', to: '/#glimpses' },
 ] as const;
 
-export const sections = { home: 'home', thrust: 'thrust-tech', event: 'event', glimpses: 'glimpses', contact: 'contact' } as const;
+export const sections = { home: 'home', thrust: 'thrust-tech', event: 'event', pocs: 'pocs', glimpses: 'glimpses', contact: 'contact' } as const;

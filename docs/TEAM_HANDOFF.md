@@ -21,15 +21,15 @@ The existing branch names come from the earlier plan. They are preserved to avoi
 | 3 | `team/03-photo-gallery` | 3D rocket and static fallback | `src/features/rocket/`, `public/assets/rocket/` |
 | 4 | `team/04-thrust-tech-info` | Space background and scroll animation | `src/features/space/` |
 | 5 | `team/05-games-hub-game-one` | About Thrust Tech | `src/features/thrust-tech/` |
-| 6 | `team/06-game-two-score-system` | Past-year POCs page | `src/features/pocs/`, `public/assets/pocs/` |
+| 6 | `team/06-game-two-score-system` | Past-year POCs section | `src/features/pocs/`, `public/assets/pocs/` |
 | 7 | `team/07-integration-quality-release` | Glimpses gallery | `src/features/glimpses/`, `public/assets/gallery/` |
 
 Member 1 is Aadit Garg. Add the remaining approved names and profile links to `src/config/site.ts`. Ownership is a collaboration convention, not a GitHub access rule. Coordinate dependency, routing and global styling changes with Member 1.
 
 ## Routes and sections
 
-- `/` is the home route. Preserve IDs `home`, `thrust-tech`, `event`, `glimpses`.
-- `/pocs` is the historical POC page; Member 6 exports its default page component.
+- `/` is the home route. Preserve IDs `home`, `thrust-tech`, `event`, `pocs`, `glimpses`.
+- Past POCs lives on the home page at `/#pocs`, between the event and Glimpses. Member 6 owns the named `PocsSection` export in `src/features/pocs/PocsSection.tsx`. The old `/pocs` URL redirects to `/#pocs` for existing links.
 - `contact` belongs to the shared footer on every page; use `/#contact` in navigation.
 - Preserve `main-content` for the skip link and route focus management.
 - Use React Router `Link` for internal destinations, including `/#section`. Use anchors for external sites, email and phone links.
