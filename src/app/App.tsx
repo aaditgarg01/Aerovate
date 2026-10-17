@@ -13,7 +13,19 @@ import { RouteEffects } from './RouteEffects';
 export function App() {
   return <><a className="skip-link" href="#main-content">Skip to content</a><Header /><RouteEffects /><ScrollMotion />
     <main id="main-content" tabIndex={-1}><ErrorBoundary><Routes>
-      <Route path="/" element={<><LandingSection /><div className="page-sheet"><div className="page-container"><ThrustTechSection /><EventSection /><PocsSection /><GlimpsesSection /></div></div></>} />
+      <Route path="/" element={
+        <>
+          <LandingSection />
+          <div className="page-sheet">
+            <ThrustTechSection />
+            <div className="page-container">
+              <EventSection />
+              <PocsSection />
+              <GlimpsesSection />
+            </div>
+          </div>
+        </>
+      } />
       <Route path="/pocs" element={<Navigate to="/#pocs" replace />} />
       <Route path="*" element={<div className="page-status"><span className="eyebrow">404 / Off course</span><h1>A little beyond our orbit.</h1><p>That page doesn’t exist. Let’s get you back to the launchpad.</p><ActionLink to="/">Return home</ActionLink></div>} />
     </Routes></ErrorBoundary></main><Footer />
