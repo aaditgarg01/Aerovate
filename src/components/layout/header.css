@@ -76,6 +76,7 @@
   transition: background .2s, border-color .2s;
 }
 .header-contact svg { width: 29px; height: 29px; }
+.header-contact[aria-current] { border-color: var(--color-highlight); color: var(--color-highlight); background: #63d5ef0c; }
 .header-contact:hover, .menu-toggle:hover { background: #ffffff0c; border-color: #c7e9ff70; color: white; }
 .menu-toggle { display: none; }
 

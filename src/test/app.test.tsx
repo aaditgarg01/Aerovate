@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { App } from '../app/App';
@@ -80,5 +80,40 @@ describe('Shared foundation', () => {
 describe('Rocket / scroll handoff', () => {
   it('keeps out-of-range and invalid progress safe for the renderer', () => {
     expect([-2, 0, .4, 1, 3, NaN, Infinity].map(clampProgress)).toEqual([0, 0, .4, 1, 1, 0, 0]);
+  });
+});
+
+
+describe('Scroll-aware navigation', () => {
+  it('follows sections down and back up, even when the URL hash points elsewhere', async () => {
+    let scroll = 0;
+    const offsets: Record<string, number> = { home: 0, 'thrust-tech': 900, event: 1350, pocs: 1800, glimpses: 2250, contact: 2750 };
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      if (this.tagName === 'HEADER') return new DOMRect(0, 0, 1200, 112);
+      return new DOMRect(0, (offsets[this.id] ?? 10000) - scroll, 1200, 450);
+    });
+    renderAt('/#pocs');
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+    const steps = [['home', 'Home'], ['thrust-tech', 'Thrust Tech'], ['event', 'The event'], ['pocs', 'Past POCs'], ['glimpses', 'Glimpses']] as const;
+    for (const [id, label] of [...steps, ...steps.slice().reverse()]) {
+      scroll = Math.max(0, offsets[id] - 120);
+      fireEvent.scroll(window);
+      await waitFor(() => expect(within(nav).getByRole('link', { name: label })).toHaveAttribute('aria-current', 'location'));
+      expect(nav.querySelectorAll('[aria-current]')).toHaveLength(1);
+    }
+    scroll = offsets.contact - 120;
+    fireEvent.resize(window);
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('aria-current', 'location'));
+    expect(nav.querySelectorAll('[aria-current]')).toHaveLength(0);
+    // Scroll tracking never moves keyboard focus away from the deep-linked section.
+    expect(document.getElementById('pocs')).toHaveFocus();
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Open menu' }));
+    expect(within(screen.getByRole('navigation', { name: 'Mobile navigation' })).getByRole('link', { name: 'Contact us' })).toHaveAttribute('aria-current', 'location');
+  });
+
+  it('does not highlight a home-page destination on the 404 screen', async () => {
+    renderAt('/lost-in-space');
+    expect(screen.getByRole('navigation', { name: 'Main navigation' }).querySelector('[aria-current]')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Contact us' })).not.toHaveAttribute('aria-current');
   });
 });
