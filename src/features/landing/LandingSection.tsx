@@ -25,6 +25,6 @@ export function LandingSection() {
 
 export function EventSection() {
   return <Section id="event" number="02" eyebrow="The experience" title="From a spark of curiosity to a new perspective.">
-    <div className="event-grid"><p className="section-copy">Aerovate brings the excitement of rocketry closer. The full event programme, schedule and participation details will be announced here.</p><dl className="event-facts"><div><dt>Event</dt><dd>Aerovate</dd></div><div><dt>Date & venue</dt><dd>To be announced</dd></div><div><dt>Explore the legacy</dt><dd><Link to="/pocs">Meet past POCs <Icon name="diagonal" width="16" height="16" /></Link></dd></div></dl></div>
+    <div className="event-grid"><p className="section-copy">Aerovate brings the excitement of rocketry closer. The full event programme, schedule and participation details will be announced here.</p><dl className="event-facts"><div><dt>Event</dt><dd>Aerovate</dd></div><div><dt>Date & venue</dt><dd>To be announced</dd></div><div><dt>Explore the legacy</dt><dd><Link to="/#pocs">Meet past POCs <Icon name="diagonal" width="16" height="16" /></Link></dd></div></dl></div>
   </Section>;
 }

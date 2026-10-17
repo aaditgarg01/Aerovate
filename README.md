@@ -26,11 +26,11 @@ npm run preview    # serve the production build
 
 - React + TypeScript + Vite with locally bundled fonts.
 - Responsive integrated header, transparent over the hero and solid after scrolling, active links, mobile menu with Escape/focus handling and outside-click dismissal, and skip link.
-- Home section navigation, `/pocs` route, unknown-page fallback, titles and route focus.
+- Single-page section navigation, including Past POCs at `/#pocs`, legacy `/pocs` redirect, unknown-page fallback and section focus.
 - Footer with email contact, clearly labelled Stellar social channels, configurable developer credits and back-to-top link.
 - Design tokens, buttons, cards, sections, loading/empty/error states and reduced-motion styling.
 - Dedicated feature folders for all seven members and a documented rocket/scroll interface.
-- Build/tests in GitHub Actions and Vercel SPA fallback for direct `/pocs` visits.
+- Build/tests in GitHub Actions and Vercel SPA fallback for old `/pocs` links.
 
 ## Feature status
 
@@ -41,7 +41,7 @@ npm run preview    # serve the production build
 | Rocket | Photographed hero rocket; retained SVG fallback and contract for Member 3’s 3D work |
 | Space and scroll | Module retained for Member 4; currently unmounted in the photographic hero |
 | About Thrust Tech | Placeholder for Member 5 |
-| Past-year POCs | Working route and empty data model for Member 6 |
+| Past-year POCs | Home-page section at `/#pocs` and empty data model for Member 6 |
 | Glimpses | Empty-state section and photo data model for Member 7 |
 
 Games and backend work are deferred. Dates, venue, POC names and historical event photographs have not been invented. The hero is a generated design background derived from the supplied reference, not documentary event photography. This is a foundation preview, not a launch-ready event announcement.

@@ -21,28 +21,46 @@ describe('Shared foundation', () => {
     expect(screen.queryByRole('navigation', { name: 'Mobile navigation' })).not.toBeInTheDocument();
   });
 
-  it('closes the menu when selecting a destination and renders the POC route', async () => {
+  it('closes the menu and focuses Past POCs without leaving the home page', async () => {
     const user = userEvent.setup(); renderAt();
     await user.click(screen.getByRole('button', { name: 'Open menu' }));
     await user.click(within(screen.getByRole('navigation', { name: 'Mobile navigation' })).getByRole('link', { name: 'Past POCs' }));
     expect(await screen.findByRole('heading', { name: 'Every launch has a team.' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false');
-    expect(document.title).toBe('Past POCs — Aerovate');
+    await waitFor(() => expect(document.getElementById('pocs')).toHaveFocus());
+    expect(screen.getByRole('heading', { level: 1, name: 'Ideas take flight.' })).toBeInTheDocument();
+    expect(document.title).toBe('Aerovate — Ideas take flight');
   });
 
-  it('navigates from the POC route to a home section and moves focus', async () => {
-    const user = userEvent.setup(); renderAt('/pocs');
+  it('navigates from the POC anchor to another section and moves focus', async () => {
+    const user = userEvent.setup(); renderAt('/#pocs');
     await screen.findByRole('heading', { name: 'Every launch has a team.' });
     await user.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Thrust Tech' }));
     await waitFor(() => expect(document.getElementById('thrust-tech')).toHaveFocus());
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   });
 
-  it('renders direct /pocs visits, an honest empty directory and contact links', async () => {
+  it('redirects legacy /pocs visits to the home section and preserves contact links', async () => {
     renderAt('/pocs');
-    expect(await screen.findByText('Our story, through its people.')).toBeInTheDocument();
+    await waitFor(() => expect(document.getElementById('pocs')).toHaveFocus());
+    expect(screen.getByRole('heading', { level: 1, name: 'Ideas take flight.' })).toBeInTheDocument();
+    expect(screen.getByText('Our story, through its people.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'astronomy@vit.ac.in' })).toHaveAttribute('href', 'mailto:astronomy@vit.ac.in');
     expect(screen.getByRole('link', { name: /Instagram/ })).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('renders every event section in one continuous home-page flow', () => {
+    renderAt();
+    expect(Array.from(document.querySelectorAll('main section')).map(section => section.id)).toEqual(['home', 'thrust-tech', 'event', 'pocs', 'glimpses']);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Past POCs' })).toHaveAttribute('href', '/#pocs');
+  });
+
+  it('scrolls the event legacy link to the POC section', async () => {
+    const user = userEvent.setup(); renderAt();
+    await user.click(screen.getByRole('link', { name: 'Meet past POCs' }));
+    await waitFor(() => expect(document.getElementById('pocs')).toHaveFocus());
+    expect(Element.prototype.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' });
   });
 
   it('offers a working route home for unknown URLs', async () => {
@@ -54,7 +72,7 @@ describe('Shared foundation', () => {
 
   it('honours reduced motion when navigating to sections', async () => {
     vi.mocked(window.matchMedia).mockImplementationOnce(query => ({ matches: query.includes('prefers-reduced-motion'), media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(), addListener: vi.fn(), removeListener: vi.fn() }));
-    renderAt('/pocs#contact');
+    renderAt('/#contact');
     await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'instant', block: 'start' }));
   });
 });
