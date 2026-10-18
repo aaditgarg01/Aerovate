@@ -1,7 +1,7 @@
 /* Keep your own --primary value here if it differs from this one. */
 .glimpses,
 .lightbox {
-  --primary: #345060;
+  --primary: var(--color-primary, #34506D);
   --secondary: #ffffff;
   --gap: 12px;
   --row-h: 250px;

@@ -115,18 +115,24 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
       setR(Math.round(Math.max(120, Math.min(width * 0.42, height * 0.46, 400))));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
+    };
+    measure();
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    ro?.observe(el);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   // Only animate while on screen.
   useEffect(() => {
     const el = stageRef.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(([e]) => {
       visible.current = e.isIntersecting;
     });

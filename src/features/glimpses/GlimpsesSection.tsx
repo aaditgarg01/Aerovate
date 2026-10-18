@@ -23,6 +23,7 @@ function useReveal() {
       { threshold: 0.08 }
     );
     io.observe(node);
+    return () => io.disconnect();
   }, []);
   return [ref, seen] as const;
 }
@@ -154,11 +155,11 @@ export function GlimpsesSection() {
     const set = () =>
       rootRef.current?.style.setProperty("--site-header-h", `${header.getBoundingClientRect().height}px`);
     set();
-    const ro = new ResizeObserver(set);
-    ro.observe(header);
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(set);
+    ro?.observe(header);
     window.addEventListener("resize", set);
     return () => {
-      ro.disconnect();
+      ro?.disconnect();
       window.removeEventListener("resize", set);
     };
   }, []);
@@ -167,7 +168,7 @@ export function GlimpsesSection() {
   const reelPaused = motionOff || viewer !== null;
 
   return (
-    <section ref={rootRef} id="glimpses" className="glimpses" aria-labelledby="glimpses-title">
+    <section ref={rootRef} id="glimpses" tabIndex={-1} className="glimpses" aria-labelledby="glimpses-title">
       <div className="glimpses__hero">
       <header className="glimpses__head">
         <GlowTitle id="glimpses-title" />
