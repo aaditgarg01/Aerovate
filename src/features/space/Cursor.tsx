@@ -6,8 +6,9 @@ import './cursor.css';
  * Member 4 — cursor interactivity (desktop mice and trackpads only; touch and reduced
  * motion keep the system cursor and get none of this).
  *
- * - A bright dot that tracks the pointer exactly, plus a ring that trails it with
- *   spring physics and stretches along the direction of travel.
+ * - A rocket cursor: its nose tip is the exact click point; it steers to face the direction
+ *   of travel, its flame grows with speed, and it boosts on click. At rest it tilts like an
+ *   arrow pointer. A ring trails it on a spring for the context states below.
  * - Context states: links and buttons swell the ring; photos say "View"; the hero sky says
  *   "Scroll"; anything can opt in with `data-cursor="Label"`.
  * - Round controls (header arrow, contact orbit, menu) capture the ring, which wraps them.
@@ -31,7 +32,7 @@ export function CursorLayer() {
     const layer = root.current;
     if (!layer || !motionAllowed() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     const html = document.documentElement;
-    const dot = layer.querySelector<HTMLElement>('.cursor-dot')!;
+    const rocket = layer.querySelector<HTMLElement>('.cursor-rocket')!;
     const ring = layer.querySelector<HTMLElement>('.cursor-ring')!;
     const label = layer.querySelector<HTMLElement>('.cursor-label')!;
     const canvas = layer.querySelector<HTMLCanvasElement>('.cursor-trail')!;
@@ -44,6 +45,9 @@ export function CursorLayer() {
     let stuck: HTMLElement | null = null;
     let magnet: HTMLElement | null = null;
     let pressed = false, shown = false, frame = 0, last = 0, lastX = x, lastY = y;
+    // rocket heading (radians, clockwise from straight up), pointer velocity, thrust 0..1
+    const REST = -.45;
+    let heading = REST, pvx = 0, pvy = 0, thrust = 0, boost = 0;
     const sparks: Spark[] = [];
     let dpr = 1;
 
@@ -92,6 +96,8 @@ export function CursorLayer() {
         ty = r.top + r.height / 2 + (y - (r.top + r.height / 2)) * .18;
         targetSize = Math.max(r.width, r.height) + 14;
       }
+      // labelled disc sits up and to the right of the rocket so it never hides the nose
+      if (layer.dataset.state === 'label') { tx = x + 54; ty = y - 30; }
       // critically-damped-ish spring
       vx += (tx - rx) * .22 * dt; vy += (ty - ry) * .22 * dt;
       vx *= .58 ** dt; vy *= .58 ** dt;
@@ -104,7 +110,18 @@ export function CursorLayer() {
       ring.style.transform = `translate3d(${rx}px,${ry}px,0) rotate(${angle}rad) scale(${1 + stretch},${1 - stretch * .55}) rotate(${-angle}rad)`;
       ring.style.width = ring.style.height = `${size}px`;
       ring.style.margin = `${-size / 2}px 0 0 ${-size / 2}px`;
-      dot.style.transform = `translate3d(${x}px,${y}px,0)`;
+      // rocket: steer toward the direction of travel, settle back to an arrow tilt at rest
+      pvx += ((x - lastX) / Math.max(dt, .5) - pvx) * Math.min(1, .3 * dt);
+      pvy += ((y - lastY) / Math.max(dt, .5) - pvy) * Math.min(1, .3 * dt);
+      const pspeed = Math.hypot(pvx, pvy);
+      const aim = pspeed > 1.4 ? Math.atan2(pvx, -pvy) : REST;
+      const turn = ((aim - heading + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      heading += turn * Math.min(1, (pspeed > 1.4 ? .2 : .08) * dt);
+      boost *= .9 ** dt;
+      thrust += (Math.min(1, pspeed / 9 + boost) - thrust) * Math.min(1, .25 * dt);
+      rocket.style.transform = `translate3d(${x}px,${y}px,0) rotate(${heading}rad) scale(${pressed ? .88 : 1})`;
+      rocket.style.setProperty('--thrust', thrust.toFixed(3));
+      const tailX = x - Math.sin(heading) * 34, tailY = y + Math.cos(heading) * 34;
 
       // magnetic pull on the hovered control
       if (magnet) {
@@ -115,14 +132,16 @@ export function CursorLayer() {
       }
 
       // exhaust sparks on fast movement
-      const moved = Math.hypot(x - lastX, y - lastY);
-      if (shown && moved > 6) {
-        const n = Math.min(4, moved / 10);
+      // exhaust sparks stream from the nozzle while the rocket is under thrust
+      if (shown && thrust > .22) {
+        const n = thrust * 2.6 * dt;
+        const bx = -Math.sin(heading), by = Math.cos(heading); // exhaust direction
         for (let i = 0; i < n; i++) {
-          const t = Math.random();
-          sparks.push({ x: lastX + (x - lastX) * t, y: lastY + (y - lastY) * t, vx: (Math.random() - .5) * .9 - (x - lastX) * .02, vy: (Math.random() - .5) * .9 - (y - lastY) * .02 + .15, life: 1, size: 1 + Math.random() * 2.2, hue: Math.random() });
+          const spread = (Math.random() - .5) * .9;
+          const v = 1.2 + Math.random() * 2.4 * thrust;
+          sparks.push({ x: tailX + (Math.random() - .5) * 3, y: tailY + (Math.random() - .5) * 3, vx: (bx + spread * by) * v, vy: (by - spread * bx) * v + .05, life: 1, size: .9 + Math.random() * 1.9, hue: Math.random() });
         }
-        if (sparks.length > 160) sparks.splice(0, sparks.length - 160);
+        if (sparks.length > 220) sparks.splice(0, sparks.length - 220);
       }
       lastX = x; lastY = y;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -140,7 +159,7 @@ export function CursorLayer() {
       }
       ctx.globalAlpha = 1;
 
-      const settling = Math.abs(tx - rx) > .2 || Math.abs(ty - ry) > .2 || Math.abs(size - targetSize) > .3 || speed > .05;
+      const settling = Math.abs(tx - rx) > .2 || Math.abs(ty - ry) > .2 || Math.abs(size - targetSize) > .3 || speed > .05 || thrust > .01 || Math.abs(turn) > .002;
       if (settling || sparks.length || magnet || stuck) schedule();
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(tick); };
@@ -159,7 +178,7 @@ export function CursorLayer() {
       }
       schedule();
     };
-    const onDown = () => { pressed = true; layer.classList.add('is-pressed'); schedule(); };
+    const onDown = () => { pressed = true; boost = 1.2; layer.classList.add('is-pressed'); schedule(); };
     const onUp = () => { pressed = false; layer.classList.remove('is-pressed'); schedule(); };
     const onLeave = (event: MouseEvent) => { if (!event.relatedTarget) { shown = false; layer.classList.remove('is-visible'); release(magnet); magnet = null; stuck = null; } };
     const onScroll = () => { if (shown) { classify(document.elementFromPoint(x, y)); schedule(); } };
@@ -188,6 +207,20 @@ export function CursorLayer() {
   return <div className="cursor" ref={root} aria-hidden="true" data-state="default">
     <canvas className="cursor-trail" />
     <div className="cursor-ring"><span className="cursor-label" /></div>
-    <div className="cursor-dot" />
+    <div className="cursor-rocket">
+      <svg viewBox="0 0 24 64" width="24" height="64">
+        <defs>
+          <linearGradient id="cursor-flame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff8e6" /><stop offset=".35" stopColor="#ffc46b" /><stop offset=".75" stopColor="#ff6a2b" stopOpacity=".7" /><stop offset="1" stopColor="#ff4d1f" stopOpacity="0" /></linearGradient>
+          <linearGradient id="cursor-hull" x1="0" x2="1"><stop offset="0" stopColor="#c9d7e3" /><stop offset=".4" stopColor="#fff" /><stop offset="1" stopColor="#b7c7d6" /></linearGradient>
+        </defs>
+        <g className="cursor-rocket__flame"><path d="M8.4 35 C9 46 11 56 12 64 C13 56 15 46 15.6 35 Z" fill="url(#cursor-flame)" /><path d="M10.2 35 C10.6 40 11.5 45 12 49 C12.5 45 13.4 40 13.8 35 Z" fill="#fff" opacity=".9" /></g>
+        <path d="M7.2 24.5 1.6 35.5 7.2 33.2Z M16.8 24.5 22.4 35.5 16.8 33.2Z" fill="#e0342b" stroke="#0b1521" strokeWidth=".8" strokeLinejoin="round" />
+        <path d="M12 .6C16.6 5.6 17.4 13 17.1 23.5V33.6H6.9V23.5C6.6 13 7.4 5.6 12 .6Z" fill="url(#cursor-hull)" stroke="#0b1521" strokeWidth=".9" />
+        <path d="M12 .6C15 3.8 16.2 7.2 16.7 10.6H7.3C7.8 7.2 9 3.8 12 .6Z" fill="#141a22" />
+        <circle cx="12" cy="17.6" r="2.5" fill="#63d5ef" stroke="#0b1521" strokeWidth=".9" />
+        <path d="M11.4 33.6V25" stroke="#e0342b" strokeWidth="1.2" />
+        <rect x="9" y="33.4" width="6" height="2.4" rx=".6" fill="#34506d" stroke="#0b1521" strokeWidth=".6" />
+      </svg>
+    </div>
   </div>;
 }
