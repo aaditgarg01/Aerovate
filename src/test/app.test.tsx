@@ -148,9 +148,9 @@ describe('Compact team footer and shared menu', () => {
     renderAt();
     const footer = document.querySelector('footer')!;
     expect(within(footer).getAllByRole('link', { name: /on GitHub/ })).toHaveLength(5);
-    expect(within(footer).getAllByRole('link', { name: /on LinkedIn/ })).toHaveLength(4);
+    expect(within(footer).getAllByRole('link', { name: /on LinkedIn/ })).toHaveLength(5);
     expect(within(footer).getByRole('link', { name: /Aadit Garg on LinkedIn/ })).toHaveAttribute('href', 'https://www.linkedin.com/in/aadit-garg22/');
-    expect(within(footer).queryByRole('link', { name: /Rishit Aggarwal on LinkedIn/ })).not.toBeInTheDocument();
+    expect(within(footer).getByRole('link', { name: /Rishit Aggarwal on LinkedIn/ })).toHaveAttribute('href', 'https://www.linkedin.com/in/rishit-aggarwal-88504b419/');
     for (const link of footer.querySelectorAll('.credit-profiles a')) {
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');

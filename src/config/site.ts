@@ -7,7 +7,7 @@ export const site = {
   socials: [
     { label: 'Instagram', url: 'https://www.instagram.com/vit_stellar/' },
     { label: 'LinkedIn', url: 'https://www.linkedin.com/company/vit-stellar/' },
-    { label: 'Stellar website', url: 'https://vitstellar.vercel.app/' },
+    { label: 'GitHub', url: 'https://github.com/AstronomyClub-VITStellar' },
   ],
   // Profile destinations live here so they can be updated independently of the footer.
   developers: [
@@ -25,6 +25,7 @@ export const site = {
     ] },
     { name: 'Rishit Aggarwal', profiles: [
       { label: 'GitHub', url: 'https://github.com/aggarwalrishit9' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/rishit-aggarwal-88504b419/' },
     ] },
     { name: 'Sushant Singh', profiles: [
       { label: 'GitHub', url: 'https://github.com/singhsushant4684-eng' },
