@@ -1,74 +1,79 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { clampProgress } from '../rocket/types';
+import { motionAllowed, smoothWheel } from './motion';
 import './space.css';
 
-/** Elements that fade/slide in the first time they enter the viewport. */
-const REVEAL_SELECTOR = 'main .section, .footer-top, .footer-wordmark';
-
-/** Motion needs a real browser (IntersectionObserver) and a visitor who allows it. */
-function motionAllowed() {
-  if (typeof IntersectionObserver === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
+/** Elements that animate in the first time they enter the viewport. */
+const REVEAL_SELECTOR = 'main .section, .footer-top, .footer-wordmark, .footer-grid';
 
 /**
- * Member 4: owns scroll measurement for the whole page.
- * - Hero: writes `--hero-progress` (0 → 1 while the hero is covered) for the CSS launch sequence.
- * - Page: writes `--page-progress` for the trajectory bar.
- * - Sections: reveals content once it scrolls into view.
- * All values are written as CSS custom properties, so React never re-renders on scroll.
+ * Member 4: page-wide scroll motion. The hero launch lives in HeroLaunch.
+ * - Inertia wheel scrolling on desktop.
+ * - Trajectory bar (`--page-progress`) along the top edge.
+ * - Velocity marquee: speed and skew follow how fast the visitor scrolls.
+ * - Sections: masked word-by-word headings and staggered content, once, on entry.
+ * - Footer: the wordmark letters rise with the scroll.
+ * Values are written straight to styles/custom properties, so React never re-renders on scroll.
  */
 export function ScrollMotion() {
   const bar = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const root = document.documentElement;
     if (!motionAllowed()) return;
+    const root = document.documentElement;
     root.classList.add('motion-ready');
+    const stopWheel = smoothWheel();
 
-    const hero = document.getElementById('home');
-    let frame = 0;
-    let heroHeight = 0;
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('.marquee-row'));
+    const wordmark = document.querySelector<HTMLElement>('.footer-wordmark');
+    let frame = 0, lastY = window.scrollY, velocity = 0, offset = 0, last = 0, marqueeVisible = false;
 
-    const measure = () => {
-      if (!hero) return;
-      heroHeight = hero.offsetHeight || window.innerHeight;
-      // Pin the hero once its bottom edge reaches the viewport (matters on tall mobile heroes).
-      hero.style.setProperty('--hero-stick', `${Math.min(0, window.innerHeight - heroHeight)}px`);
-    };
-
-    const update = () => {
+    const update = (now: number) => {
       frame = 0;
-      const scrollY = window.scrollY;
+      const dt = Math.min(3, last ? (now - last) / 16.67 : 1);
+      last = now;
+      const y = window.scrollY;
       const scrollable = root.scrollHeight - window.innerHeight;
-      bar.current?.style.setProperty('--page-progress', String(scrollable > 0 ? clampProgress(scrollY / scrollable) : 0));
-      if (hero && heroHeight) {
-        const progress = clampProgress(scrollY / heroHeight);
-        hero.style.setProperty('--hero-progress', progress.toFixed(4));
-        hero.toggleAttribute('data-covered', progress >= 1);
+      bar.current?.style.setProperty('--page-progress', String(scrollable > 0 ? clampProgress(y / scrollable) : 0));
+
+      // marquee: drift + scroll velocity (direction-aware), skewed by speed
+      const delta = y - lastY;
+      lastY = y;
+      velocity += (delta - velocity) * .18;
+      offset += (.6 + Math.abs(velocity) * .55) * dt * (velocity < -.5 ? -1 : 1);
+      const skew = Math.max(-9, Math.min(9, velocity * -.35));
+      rows.forEach((row, i) => {
+        const width = row.scrollWidth / 2 || 1;
+        const dir = i % 2 ? 1 : -1;
+        const x = ((offset * dir) % width + width) % width;
+        row.style.transform = `translate3d(${-x}px,0,0) skewX(${skew}deg)`;
+      });
+
+      // footer wordmark: letters rise from below as the footer comes up
+      if (wordmark) {
+        const r = wordmark.getBoundingClientRect();
+        wordmark.style.setProperty('--fp', String(clampProgress((window.innerHeight - r.top) / (r.height + window.innerHeight * .35))));
       }
+      if (Math.abs(velocity) > .05 || marqueeVisible) frame = requestAnimationFrame(update);
     };
-
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
-    const resize = () => { measure(); schedule(); };
-
-    measure();
-    update();
+    schedule();
     window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', resize);
-    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
-    if (hero) resizeObserver?.observe(hero);
+    window.addEventListener('resize', schedule);
+
+    // Pause the always-on marquee loop while it is off-screen.
+    const marquee = document.querySelector('.marquee');
+    const mio = marquee ? new IntersectionObserver(([e]) => { marqueeVisible = e.isIntersecting; schedule(); }) : null;
+    if (marquee) mio?.observe(marquee);
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', resize);
-      resizeObserver?.disconnect();
-      hero?.style.removeProperty('--hero-progress');
-      hero?.style.removeProperty('--hero-stick');
-      hero?.removeAttribute('data-covered');
+      window.removeEventListener('resize', schedule);
+      mio?.disconnect();
+      stopWheel();
       root.classList.remove('motion-ready');
     };
   }, [pathname]);
@@ -84,7 +89,7 @@ export function ScrollMotion() {
         reveal(entry.target);
         observer.unobserve(entry.target);
       }
-    }, { rootMargin: '0px 0px -12% 0px', threshold: .12 });
+    }, { rootMargin: '0px 0px -14% 0px', threshold: .08 });
     targets.forEach(target => observer.observe(target));
     // Keyboard and deep-link users must never land on hidden content.
     const focusIn = (event: FocusEvent) => {
@@ -103,32 +108,13 @@ export function ScrollMotion() {
   return <div className="scroll-trajectory" ref={bar} aria-hidden="true"><span /></div>;
 }
 
-/** Deterministic star field for the hero night sky (box-shadow keeps it to a single element). */
-function stars(count: number, seed: number, spread: number) {
-  let value = seed;
-  const random = () => (value = (value * 16807) % 2147483647) / 2147483647;
-  return Array.from({ length: count }, () => {
-    const x = (random() * 100).toFixed(2);
-    const y = (random() * spread).toFixed(2);
-    const alpha = (.35 + random() * .65).toFixed(2);
-    return `${x}vw ${y}svh 0 rgba(222, 240, 255, ${alpha})`;
-  }).join(',');
-}
+const MARQUEE = ['Aerovate', 'Ideas take flight', 'The rocketry experience', 'For minds that look up'];
 
-const smallStars = stars(140, 7, 70);
-const brightStars = stars(34, 91, 60);
-
-/** Layers added to the hero for the scroll launch sequence. Purely decorative. */
-export function HeroScrollLayers() {
-  return <>
-    <div className="hero-night" aria-hidden="true" />
-    <div className="hero-stars" aria-hidden="true">
-      <span className="hero-stars__small" style={{ boxShadow: smallStars }} />
-      <span className="hero-stars__bright" style={{ boxShadow: brightStars }} />
-    </div>
-  </>;
-}
-
-export function HeroScrollCue() {
-  return <div className="hero-scroll-cue" aria-hidden="true"><span className="hero-scroll-cue__track"><i /></span>Scroll to launch</div>;
+/** Two giant type bands that run in opposite directions, driven by ScrollMotion. */
+export function ScrollMarquee() {
+  const items = (outline: boolean) => [...MARQUEE, ...MARQUEE].map((text, i) => <span key={i} className={outline === (i % 2 === 0) ? 'is-outline' : ''}>{text}<i>✦</i></span>);
+  return <div className="marquee" aria-hidden="true">
+    <div className="marquee-row">{items(false)}</div>
+    <div className="marquee-row">{items(true)}</div>
+  </div>;
 }

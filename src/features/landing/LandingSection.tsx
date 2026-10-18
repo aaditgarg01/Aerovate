@@ -1,7 +1,7 @@
 import { Section } from '../../components/ui/Primitives';
 import { Icon } from '../../components/ui/Icon';
 import { Link } from 'react-router';
-import { HeroScrollCue, HeroScrollLayers } from '../space/ScrollMotion';
+import { HeroLaunch } from '../space/HeroLaunch';
 import './landing.css';
 
 /** Member 2 owns this starting composition and the final approved event copy. */
@@ -11,19 +11,23 @@ export function LandingSection() {
       <source srcSet="/assets/hero/aerovate-launch-sunset.webp" type="image/webp" />
       <img src="/assets/hero/aerovate-launch-sunset.jpg" alt="" width="1740" height="904" fetchPriority="high" decoding="async" />
     </picture>
-    <HeroScrollLayers />
     <div className="hero-inner">
       <div className="hero-copy">
         <span className="eyebrow hero-eyebrow"><span className="status-dot" />Curiosity is our launchpad</span>
-        <h1 id="hero-title">Ideas{' '}<br />take <span className="hero-highlight">flight.</span></h1>
+        <h1 id="hero-title" aria-label="Ideas take flight."><Chars text="Ideas" /><br /><Chars text="take" />{' '}<span className="hero-highlight"><Chars text="flight." /></span></h1>
         <p className="hero-kicker">AEROVATE / THE ROCKETRY EXPERIENCE</p>
         <p className="hero-description">For minds that look up.<br />And hands that want to build.</p>
       </div>
       {/* Reserved for the future model renderer; the photo supplies the current rocket. */}
       <div className="hero-rocket-stage" aria-hidden="true" />
-      <HeroScrollCue />
     </div>
+    <HeroLaunch />
   </section>;
+}
+
+/** Splits a word into letters for the launch sequence; screen readers use the heading's label. */
+function Chars({ text }: { text: string }) {
+  return <span className="hero-word" aria-hidden="true">{Array.from(text, (char, i) => <span key={i} className="hero-char">{char}</span>)}</span>;
 }
 
 export function EventSection() {

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
+import { Fragment, type ButtonHTMLAttributes, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Icon } from './Icon';
 
@@ -13,7 +13,7 @@ export function ActionLink({ to, children, variant = 'primary' }: { to: string; 
 export function Section({ id, number, eyebrow, title, children, className = '' }: { id: string; number: string; eyebrow: string; title: string; children: ReactNode; className?: string }) {
   return <section id={id} tabIndex={-1} aria-labelledby={`${id}-title`} className={`section ${className}`}>
     <div className="section-label"><span>{number} / {eyebrow}</span><Icon name="spark" /></div>
-    <div className="section-body"><h2 id={`${id}-title`}>{title}</h2>{children}</div>
+    <div className="section-body"><h2 id={`${id}-title`}>{title.split(' ').map((word, i) => <Fragment key={i}>{i > 0 && ' '}<span className="word"><span style={{ '--wi': i } as CSSProperties}>{word}</span></span></Fragment>)}</h2>{children}</div>
   </section>;
 }
 

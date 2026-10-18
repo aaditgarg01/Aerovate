@@ -19,7 +19,10 @@ export function useActiveSection(pathname: string) {
         if (section && section.getBoundingClientRect().top <= readingLine) current = id;
       }
       setActiveSection(current);
-      setIsScrolled(window.scrollY > 32);
+      // Keep the header transparent while the pinned launch sequence is playing.
+      const track = document.documentElement.classList.contains('motion-ready') ? document.querySelector('.hero-track') : null;
+      const launching = !!track && track.getBoundingClientRect().bottom > headerHeight + 1;
+      setIsScrolled(window.scrollY > 32 && !launching);
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
