@@ -9,13 +9,27 @@ export const site = {
     { label: 'LinkedIn', url: 'https://www.linkedin.com/company/vit-stellar/' },
     { label: 'Stellar website', url: 'https://vitstellar.vercel.app/' },
   ],
-  // Profile URLs are platform-neutral; replace GitHub links with LinkedIn here when provided.
+  // Profile destinations live here so they can be updated independently of the footer.
   developers: [
-    { name: 'Aadit Garg', role: 'Foundation, UI, integration & deployment', url: 'https://github.com/aaditgarg01' },
-    { name: 'Darsh L', role: 'Background artwork', url: 'https://github.com/Dracula27581234' },
-    { name: 'Harsh Choudhary', role: 'Scroll animation & cursor interactivity', url: 'https://github.com/SpyApple-web' },
-    { name: 'Rishit Aggarwal', role: 'Thrust Tech section', url: 'https://github.com/aggarwalrishit9' },
-    { name: 'Sushant Singh', role: 'Glimpses gallery', url: 'https://github.com/singhsushant4684-eng' },
+    { name: 'Aadit Garg', profiles: [
+      { label: 'GitHub', url: 'https://github.com/aaditgarg01' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/aadit-garg22/' },
+    ] },
+    { name: 'Darsh L', profiles: [
+      { label: 'GitHub', url: 'https://github.com/Dracula27581234' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/darsh-lakshmikanth-b83326388/' },
+    ] },
+    { name: 'Harsh Choudhary', profiles: [
+      { label: 'GitHub', url: 'https://github.com/SpyApple-web' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/harsh-choudhary-4b4300424/' },
+    ] },
+    { name: 'Rishit Aggarwal', profiles: [
+      { label: 'GitHub', url: 'https://github.com/aggarwalrishit9' },
+    ] },
+    { name: 'Sushant Singh', profiles: [
+      { label: 'GitHub', url: 'https://github.com/singhsushant4684-eng' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/sushant-singh-663301378/' },
+    ] },
   ],
 } as const;
 
