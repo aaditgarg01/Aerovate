@@ -10,7 +10,7 @@ export function Footer() {
     <div className="footer-grid">
       <div><h3>Contact us</h3><a className="email-link" href={`mailto:${site.contact.email}`}>{site.contact.email}</a><p>{site.contact.label} · Event enquiries</p></div>
       <div><h3>Connect with Stellar</h3><ul>{site.socials.map(social => <li key={social.label}><a href={social.url} target="_blank" rel="noopener noreferrer">{social.label}<Icon name="diagonal" width="14" height="14" /><span className="sr-only"> (opens in a new tab)</span></a></li>)}</ul></div>
-      <div><h3>Developed by</h3><p className="footer-team">Aerovate Tech Team</p><ul>{site.developers.map(person => <li key={person.name}><a href={person.url} target="_blank" rel="noopener noreferrer">{person.name}<Icon name="diagonal" width="14" height="14" /><span className="sr-only"> (opens in a new tab)</span></a><span className="credit-role">{person.role}</span></li>)}</ul></div>
+      <div className="footer-credits"><h3>Design &amp; development</h3><p className="footer-team">Aerovate Tech Team</p><ul>{site.developers.map(person => <li key={person.name}><a href={person.url} target="_blank" rel="noopener noreferrer">{person.name}<Icon name="diagonal" width="14" height="14" /><span className="sr-only"> (opens in a new tab)</span></a><span className="credit-role">{person.role}</span></li>)}</ul></div>
     </div>
     <div className="footer-wordmark" aria-hidden="true"><span className="footer-letters">{Array.from('AEROVATE', (letter, i) => <i key={i} style={{ '--li': i } as CSSProperties}>{letter}</i>)}</span><span>↗</span></div>
     <div className="footer-bottom"><span>© {new Date().getFullYear()} Aerovate</span><span>Made of curiosity. Built together.</span><Link to="/#home">Back to top ↑</Link></div>
