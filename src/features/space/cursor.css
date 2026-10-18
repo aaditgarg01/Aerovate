@@ -1,0 +1,42 @@
+/* ── Cursor (Member 4) — only active with `html.cursor-on` (fine pointer, motion allowed) ── */
+.cursor { display: none; }
+.cursor-on .cursor { display: block; }
+.cursor-on, .cursor-on * { cursor: none !important; }
+
+.cursor > * { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 10000; }
+.cursor-trail { width: 100vw; height: 100vh; z-index: 9998; }
+.cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff; mix-blend-mode: difference; opacity: 0; transition: opacity .3s, width .25s, height .25s, margin .25s; will-change: transform; }
+.cursor-ring { width: 34px; height: 34px; margin: -17px 0 0 -17px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #bbd7edb3; opacity: 0; transition: opacity .3s, background-color .3s, border-color .3s, backdrop-filter .3s; will-change: transform, width, height; }
+.cursor.is-visible > .cursor-dot, .cursor.is-visible > .cursor-ring { opacity: 1; }
+
+.cursor-label { font: 600 10px var(--font-heading); letter-spacing: .18em; text-transform: uppercase; color: #0b1521; white-space: nowrap; opacity: 0; transform: scale(.6); transition: opacity .25s, transform .35s cubic-bezier(.2, .9, .25, 1.3); }
+
+/* links / buttons: a soft filled halo, dot shrinks */
+.cursor[data-state='link'] .cursor-ring { background: #63d5ef1f; border-color: #63d5ef; }
+.cursor[data-state='link'] .cursor-dot { width: 4px; height: 4px; margin: -2px 0 0 -2px; background: var(--color-highlight); mix-blend-mode: normal; }
+
+/* labelled: a solid disc with a word inside */
+.cursor[data-state='label'] .cursor-ring { background: var(--color-highlight); border-color: transparent; box-shadow: 0 0 40px #63d5ef66; }
+.cursor[data-state='label'] .cursor-label { opacity: 1; transform: none; }
+.cursor[data-state='label'] .cursor-dot { opacity: 0; }
+
+.cursor.is-pressed .cursor-ring { border-color: #fff; background-color: #63d5ef40; }
+
+/* spotlight cards: a glow that follows the pointer */
+.cursor-on .empty-state, .cursor-on .card, .cursor-on .event-facts { position: relative; isolation: isolate; }
+.cursor-on .empty-state::after, .cursor-on .card::after, .cursor-on .event-facts::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .45s;
+  background: radial-gradient(380px circle at var(--spot-x, 50%) var(--spot-y, 50%), #63d5ef22, transparent 65%);
+}
+.cursor-on .empty-state:hover::after, .cursor-on .card:hover::after, .cursor-on .event-facts:hover::after { opacity: 1; }
+.cursor-on .empty-state { transition: border-color .4s; }
+.cursor-on .empty-state:hover { border-color: #63d5ef55; }
+
+/* footer wordmark: letters jump and light up under the pointer */
+.cursor-on .footer-letters i { transition: translate .5s cubic-bezier(.2, .9, .25, 1.4), color .4s, text-shadow .4s; }
+.cursor-on .footer-letters i:hover { translate: 0 -10%; color: var(--color-highlight); text-shadow: 0 0 30px #63d5ef80; transition-duration: .2s; }
+
+/* marquee: words brighten under the pointer */
+.cursor-on .marquee-row span { transition: color .35s, -webkit-text-stroke-color .35s; }
+.cursor-on .marquee-row span:hover { color: var(--color-highlight); -webkit-text-stroke-color: var(--color-highlight); }
+.cursor-on .marquee-row span.is-outline:hover { color: transparent; }

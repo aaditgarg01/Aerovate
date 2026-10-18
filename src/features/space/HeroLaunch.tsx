@@ -79,6 +79,7 @@ export function HeroLaunch() {
     const cue = $<HTMLElement>('.hero-scroll-cue');
     const chars = Array.from(hero.querySelectorAll<HTMLElement>('.hero-char'));
     const copy = Array.from(hero.querySelectorAll<HTMLElement>('.hero-eyebrow, .hero-kicker, .hero-description'));
+    const inner = hero.querySelector<HTMLElement>('.hero-inner');
     if (!ctx) return;
 
     hero.classList.add('launch-motion');
@@ -104,10 +105,16 @@ export function HeroLaunch() {
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       hero.style.setProperty('--hero-stick', `${Math.min(0, window.innerHeight - hero.offsetHeight)}px`);
       trackLen = Math.max(1, track.offsetHeight - window.innerHeight);
+      if (window.scrollY < 2) cacheChars();
     };
 
     const particles: Particle[] = [];
     let p = 0, smooth = 0, last = 0, frame = 0, visible = true, lift = 0, prevLift = 0;
+    // Pointer parallax (fine pointers only): -1..1 across the hero, eased.
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let mx = 0, my = 0, smx = 0, smy = 0, px = -9999, py = -9999;
+    let charCentres: Array<[number, number]> = [];
+    const cacheChars = () => { charCentres = chars.map(el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2 + window.scrollY]; }); };
 
     const render = (now: number) => {
       frame = 0;
@@ -119,6 +126,18 @@ export function HeroLaunch() {
       if (Math.abs(p - smooth) < .0004) smooth = p;
       const q = smooth;
       const seg = (a: number, b: number) => clamp((q - a) / (b - a));
+      smx += (mx - smx) * Math.min(1, .07 * dt); smy += (my - smy) * Math.min(1, .07 * dt);
+      if (inner) inner.style.transform = smx || smy ? `translate3d(${smx * 12}px,${smy * 8}px,0)` : '';
+
+      // 0 · Headline letters lean away from a nearby pointer (fades out once the launch starts)
+      const magnet = finePointer ? 1 - seg(0, .015) : 0;
+      chars.forEach((el, i) => {
+        const c = charCentres[i];
+        const k = c && magnet ? Math.max(0, 1 - Math.hypot(px - c[0], py - (c[1] - window.scrollY)) / 150) * magnet : 0;
+        const ease = k * k * (3 - 2 * k);
+        el.style.translate = ease > .001 ? `${Math.sign(c[0] - px) * ease * 6}px ${-ease * 22}%` : '';
+        el.classList.toggle('is-near', ease > .35);
+      });
 
       // 1 · Headline peels away letter by letter, supporting copy lifts off
       chars.forEach((el, i) => {
@@ -139,7 +158,7 @@ export function HeroLaunch() {
       const tilt = Math.min(H * .1 * easeInOut(seg(.34, .8)), oy * (scale - 1));
       const shakeAmp = 3.2 * seg(.2, .3) * (1 - seg(.42, .56));
       const sx = Math.sin(now * .09) * shakeAmp, sy = Math.cos(now * .113) * shakeAmp * .6;
-      stage.style.transform = `translate3d(${sx}px,${tilt + sy}px,0) scale(${scale})`;
+      stage.style.transform = `translate3d(${sx - smx * 16}px,${tilt + sy - smy * 10}px,0) scale(${scale})`;
 
       // 3 · Countdown 3 · 2 · 1 · Liftoff
       counts.forEach((el, i) => {
@@ -165,7 +184,7 @@ export function HeroLaunch() {
       // 5 · Dusk → night, stars
       night.style.opacity = String(easeInOut(seg(.3, .78)) * .94);
       starLayer.style.opacity = String(seg(.46, .86));
-      starLayer.style.transform = `translate3d(0,${(1 - seg(.4, 1)) * 4}svh,0)`;
+      starLayer.style.transform = `translate3d(${-smx * 26}px,calc(${(1 - seg(.4, 1)) * 4}svh + ${-smy * 18}px),0)`;
 
       // 6 · Tagline lights up word by word
       wordsBox.style.opacity = String(seg(.6, .65) * (1 - seg(.94, .995)));
@@ -259,16 +278,29 @@ export function HeroLaunch() {
 
       hero.toggleAttribute('data-covered', p >= 1 && track.getBoundingClientRect().bottom <= 0);
       // Keep animating while visible and something is moving (flame flicker, smoke, easing)
-      if (visible && (burning() || particles.length || smooth !== p)) schedule();
+      if (visible && (burning() || particles.length || smooth !== p || Math.abs(mx - smx) > .002 || Math.abs(my - smy) > .002)) schedule();
     };
     const burning = () => smooth > .2 && smooth < .99;
     const schedule = () => { if (!frame) frame = requestAnimationFrame(render); };
     const onResize = () => { measure(); schedule(); };
+    const onPointer = (event: PointerEvent) => {
+      if (!finePointer || event.pointerType === 'touch') return;
+      const r = hero.getBoundingClientRect();
+      if (event.clientY > r.bottom) return;
+      mx = (event.clientX / window.innerWidth - .5) * 2;
+      my = (event.clientY / window.innerHeight - .5) * 2;
+      px = event.clientX; py = event.clientY;
+      if (!charCentres.length && window.scrollY < 2) cacheChars();
+      schedule();
+    };
+    const onPointerLeave = () => { mx = my = 0; px = py = -9999; schedule(); };
 
     measure();
     schedule();
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', onResize);
+    window.addEventListener('pointermove', onPointer, { passive: true });
+    document.documentElement.addEventListener('mouseleave', onPointerLeave);
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
     ro?.observe(hero);
     const io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) schedule(); });
@@ -278,12 +310,15 @@ export function HeroLaunch() {
       cancelAnimationFrame(frame);
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('pointermove', onPointer);
+      document.documentElement.removeEventListener('mouseleave', onPointerLeave);
+      if (inner) inner.style.transform = '';
       ro?.disconnect();
       io.disconnect();
       hero.classList.remove('launch-motion', 'launch-ready');
       hero.removeAttribute('data-covered');
       hero.style.removeProperty('--hero-stick');
-      [...chars, ...copy].forEach(el => { el.style.transform = ''; el.style.opacity = ''; });
+      [...chars, ...copy].forEach(el => { el.style.transform = ''; el.style.opacity = ''; el.style.translate = ''; });
     };
   }, []);
 

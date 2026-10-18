@@ -28,7 +28,8 @@ export function ScrollMotion() {
 
     const rows = Array.from(document.querySelectorAll<HTMLElement>('.marquee-row'));
     const wordmark = document.querySelector<HTMLElement>('.footer-wordmark');
-    let frame = 0, lastY = window.scrollY, velocity = 0, offset = 0, last = 0, marqueeVisible = false;
+    const marquee = document.querySelector<HTMLElement>('.marquee');
+    let frame = 0, lastY = window.scrollY, velocity = 0, offset = 0, last = 0, marqueeVisible = false, pace = 1;
 
     const update = (now: number) => {
       frame = 0;
@@ -42,7 +43,9 @@ export function ScrollMotion() {
       const delta = y - lastY;
       lastY = y;
       velocity += (delta - velocity) * .18;
-      offset += (.6 + Math.abs(velocity) * .55) * dt * (velocity < -.5 ? -1 : 1);
+      // hovering the band slows it right down so the words can be read (and lit by the cursor)
+      pace += ((marquee?.matches(':hover') ? .12 : 1) - pace) * Math.min(1, .06 * dt);
+      offset += (.6 + Math.abs(velocity) * .55) * pace * dt * (velocity < -.5 ? -1 : 1);
       const skew = Math.max(-9, Math.min(9, velocity * -.35));
       rows.forEach((row, i) => {
         const width = row.scrollWidth / 2 || 1;
@@ -64,7 +67,6 @@ export function ScrollMotion() {
     window.addEventListener('resize', schedule);
 
     // Pause the always-on marquee loop while it is off-screen.
-    const marquee = document.querySelector('.marquee');
     const mio = marquee ? new IntersectionObserver(([e]) => { marqueeVisible = e.isIntersecting; schedule(); }) : null;
     if (marquee) mio?.observe(marquee);
 
