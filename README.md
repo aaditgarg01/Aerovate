@@ -47,7 +47,7 @@ npm run preview    # serve the production build
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
 - Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
-- Twilight blossom footer matching the supplied design, with live contact text, social icons, GitHub/LinkedIn contributor links and an interactive AEROVATE 3.0 label.
+- Twilight blossom footer matching the supplied design, with live contact text, social icons, GitHub/LinkedIn contributor links and an large interactive AEROVATE wordmark below the footer content.
 - Automated frontend checks in GitHub Actions and deployment through Vercel.
 
 ## Content and remaining work
@@ -99,4 +99,4 @@ References: [VIT Stellar](https://vitstellar.vercel.app/) for header/navigation 
 
 ## Footer artwork
 
-The twilight blossom landscape in `public/assets/footer/twilight-blossom.webp` is a text-free background derived from the supplied footer mockup. All headings, contact details, social icons and contributor links are rendered as accessible HTML/SVG rather than baked into the image. The artwork was prepared using the image-generation skill; the AEROVATE letter interaction is retained in the small edition label.
+The twilight blossom landscape in `public/assets/footer/twilight-blossom.webp` is a text-free background derived from the supplied footer mockup. All headings, contact details, social icons and contributor links are rendered as accessible HTML/SVG rather than baked into the image. The artwork was prepared using the image-generation skill; the large AEROVATE wordmark below the contact and team content retains its letter hover and scroll-reveal interactions.
