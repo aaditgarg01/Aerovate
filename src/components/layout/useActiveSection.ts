@@ -12,7 +12,7 @@ export function useActiveSection(pathname: string) {
     let hasScrolled = false;
     const update = () => {
       frame = 0;
-      const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+      const headerHeight = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
       const readingLine = headerHeight + Math.min(120, window.innerHeight * .16);
       let current: string = sections.home;
       for (const id of Object.values(sections)) {
@@ -28,7 +28,7 @@ export function useActiveSection(pathname: string) {
           window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${hash}`);
         }
       }
-      // Keep the header transparent while the pinned launch sequence is playing.
+      // Keep the floating header fully visible while the pinned launch sequence is playing.
       const track = document.documentElement.classList.contains('motion-ready') ? document.querySelector('.hero-track') : null;
       const launching = !!track && track.getBoundingClientRect().bottom > headerHeight + 1;
       setIsScrolled(window.scrollY > 32 && !launching);

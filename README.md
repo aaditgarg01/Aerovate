@@ -12,13 +12,13 @@ Built together by the **Aerovate Tech Team**.
 
 | Contributor | Contributions |
 | --- | --- |
-| [Aadit Garg](https://github.com/aaditgarg01) | Project setup and shared frontend foundation; theme, reusable UI, responsive header and footer; single-page navigation, section URL tracking and accessibility; feature integration, fixes, testing and Vercel deployment. |
-| [Darsh L](https://github.com/Dracula27581234) | Background artwork. |
-| [Harsh Choudhary](https://github.com/SpyApple-web) | Scroll animation and cursor interactivity. |
+| [Aadit Garg](https://github.com/aaditgarg01) · [LinkedIn](https://www.linkedin.com/in/aadit-garg22/) | Project setup and shared frontend foundation; theme, reusable UI, responsive header and footer; single-page navigation, section URL tracking and accessibility; feature integration, fixes, testing and Vercel deployment. |
+| [Darsh L](https://github.com/Dracula27581234) · [LinkedIn](https://www.linkedin.com/in/darsh-lakshmikanth-b83326388/) | Background artwork. |
+| [Harsh Choudhary](https://github.com/SpyApple-web) · [LinkedIn](https://www.linkedin.com/in/harsh-choudhary-4b4300424/) | Scroll animation and cursor interactivity. |
 | [Rishit Aggarwal](https://github.com/aggarwalrishit9) | Thrust Tech section. |
-| [Sushant Singh](https://github.com/singhsushant4684-eng) | Glimpses gallery. |
+| [Sushant Singh](https://github.com/singhsushant4684-eng) · [LinkedIn](https://www.linkedin.com/in/sushant-singh-663301378/) | Glimpses gallery. |
 
-Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: GitHub URLs can be replaced with LinkedIn URLs when provided. Keep this table in sync when changing contributor details.
+Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: Each person can have GitHub and LinkedIn profiles; the footer shows names and links without contribution descriptions. Keep this table in sync when changing contributor details.
 
 ## Run locally
 
@@ -40,14 +40,14 @@ npm run preview    # serve the production build
 
 ## Website features
 
-- Responsive header with transparent hero styling, active section links, a mobile menu, keyboard focus handling and a skip link.
+- Floating pill header with VIT Stellar branding, a centred Aerovate logo placeholder and a burger menu at every screen size. It fades after the hero and returns to full opacity on hover, keyboard focus or menu opening. Active section links, keyboard focus handling and a skip link are preserved.
 - Single-page navigation with URL hashes that follow scrolling, including Past POCs at `/#pocs`. The legacy `/pocs` route redirects to that section.
 - Sunset hero with a scroll-driven launch sequence, countdown, ignition, liftoff and nightfall.
 - Rocket cursor with smooth steering, flame and exhaust, magnetic controls, hover labels and card spotlights on supported desktop pointers.
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
 - Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
-- Footer with VIT Stellar contact details and social channels, contributor credits and a back-to-top link.
+- Compact footer with VIT Stellar contact details, social channels, contributor profile links and the interactive AEROVATE wordmark.
 - Automated frontend checks in GitHub Actions and deployment through Vercel.
 
 ## Content and remaining work
@@ -86,6 +86,8 @@ src/
   test/                   # automated checks
 public/assets/            # rocket, POC and gallery assets
 ```
+
+The header uses the official Stellar logo from the [VIT Stellar website](https://vitstellar.vercel.app/assets/logos/logo.webp), saved locally in `public/assets/branding/`. The provisional Aerovate mark is inside `.aerovate-logo-placeholder` in `src/components/layout/Header.tsx` and can be replaced with the approved event logo.
 
 ## Hosting
 
