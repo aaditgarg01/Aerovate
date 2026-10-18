@@ -34,6 +34,9 @@
 .launch-stars span + span { width: 2px; height: 2px; animation: launch-twinkle 3.4s ease-in-out infinite alternate; }
 
 .hero-char { display: inline-block; will-change: transform, opacity; transform-origin: 50% 100%; }
+.hero-char { transition: color .35s, text-shadow .35s; }
+.hero-char.is-near { color: var(--color-highlight); text-shadow: 0 0 28px #63d5ef66; }
+.hero-highlight .hero-char.is-near { color: #fff; }
 .hero-word { white-space: nowrap; }
 
 /* 3 · 2 · 1 · Liftoff */

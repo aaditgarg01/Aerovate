@@ -7,11 +7,12 @@ import { ThrustTechSection } from '../features/thrust-tech/ThrustTechSection';
 import { PocsSection } from '../features/pocs/PocsSection';
 import { GlimpsesSection } from '../features/glimpses/GlimpsesSection';
 import { ScrollMarquee, ScrollMotion } from '../features/space/ScrollMotion';
+import { CursorLayer } from '../features/space/Cursor';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RouteEffects } from './RouteEffects';
 
 export function App() {
-  return <><a className="skip-link" href="#main-content">Skip to content</a><Header /><RouteEffects /><ScrollMotion />
+  return <><a className="skip-link" href="#main-content">Skip to content</a><Header /><RouteEffects /><ScrollMotion /><CursorLayer />
     <main id="main-content" tabIndex={-1}><ErrorBoundary><Routes>
       <Route path="/" element={
         <>

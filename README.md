@@ -39,7 +39,7 @@ npm run preview    # serve the production build
 | Foundation, header, footer | Implemented by Member 1 |
 | Landing and event description | Reference-matched sunset hero; Member 2 finalises event content |
 | Rocket | Photographed hero rocket; retained SVG fallback and contract for Member 3’s 3D work |
-| Space and scroll | Scroll-scrubbed launch sequence in the pinned hero (countdown, ignition, liftoff, nightfall), inertia wheel scrolling, velocity marquee and section reveals; static for reduced motion |
+| Space and scroll | Scroll-scrubbed launch sequence in the pinned hero (countdown, ignition, liftoff, nightfall), inertia wheel scrolling, velocity marquee and section reveals; custom cursor with magnetic buttons, hover labels, card spotlights and hero parallax (mouse and trackpad only); static for reduced motion |
 | About Thrust Tech | Placeholder for Member 5 |
 | Past-year POCs | Home-page section at `/#pocs` and empty data model for Member 6 |
 | Glimpses | Empty-state section and photo data model for Member 7 |
