@@ -319,7 +319,7 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
           </div>
 
           <p className="tt-statement tt-rise tt-r1">Engineering curiosity.<br />Exploring beyond.</p>
-          <figure className="tt-photo tt-rise tt-r3" role="img" aria-label="Members of Thrust Tech and VIT-STELLAR standing together"><span className="tt-cap">FIG. 01</span></figure>
+          <figure className="tt-photo tt-rise tt-r3" role="img" aria-label="Members of Thrust Tech and VIT-STELLAR standing together"></figure>
           <div className="tt-support">
             <p className="tt-rise tt-r2">Thrust Tech is an aerospace and rocketry organisation that explores the science and engineering behind flight, propulsion, and space technology.</p>
             <p className="tt-rise tt-r2">Through its collaboration with VIT-STELLAR, it brings an aerospace perspective to Aerovate, connecting students&apos; curiosity about space with real engineering.</p>
