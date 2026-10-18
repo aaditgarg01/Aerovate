@@ -1,8 +1,24 @@
 # Aerovate
 
-Frontend foundation for the Aerovate event website. Member 1's shared design, routing, responsive header and footer are implemented; six separate starter modules let the remaining members develop in parallel.
+The Aerovate event website, built with React, TypeScript and Vite. A single scrolling page brings together the launch experience, Thrust Tech, event information, past-year POCs, Glimpses and contact details.
+
+**Live website:** [aerovate-eight.vercel.app](https://aerovate-eight.vercel.app/)
 
 **Primary:** `#34506D` · **Secondary:** `#FFFFFF` · Dark navy surfaces, pale blue accents, Space Grotesk headings and DM Sans body text.
+
+## Design & development
+
+Built together by the **Aerovate Tech Team**.
+
+| Contributor | Contributions |
+| --- | --- |
+| [Aadit Garg](https://github.com/aaditgarg01) | Project setup and shared frontend foundation; theme, reusable UI, responsive header and footer; single-page navigation, section URL tracking and accessibility; feature integration, fixes, testing and Vercel deployment. |
+| [Darsh L](https://github.com/Dracula27581234) | Background artwork. |
+| [Harsh Choudhary](https://github.com/SpyApple-web) | Scroll animation and cursor interactivity. |
+| [Rishit Aggarwal](https://github.com/aggarwalrishit9) | Thrust Tech section. |
+| [Sushant Singh](https://github.com/singhsushant4684-eng) | Glimpses gallery. |
+
+Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: GitHub URLs can be replaced with LinkedIn URLs when provided. Keep this table in sync when changing contributor details.
 
 ## Run locally
 
@@ -16,59 +32,65 @@ npm run dev
 Open the local URL printed by Vite. No environment variables, API keys or backend services are required.
 
 ```sh
-npm test           # navigation, routes, focus, and rocket contract
+npm test           # navigation, section URLs, motion, cursor and gallery checks
 npm run typecheck  # TypeScript checks
 npm run build      # typecheck + production bundle in dist/
 npm run preview    # serve the production build
 ```
 
-## Ready to use
+## Website features
 
-- React + TypeScript + Vite with locally bundled fonts.
-- Responsive integrated header, transparent over the hero and solid after scrolling, active links, mobile menu with Escape/focus handling and outside-click dismissal, and skip link.
-- Single-page section navigation, including Past POCs at `/#pocs`, legacy `/pocs` redirect, unknown-page fallback and section focus.
-- Footer with email contact, clearly labelled Stellar social channels, configurable developer credits and back-to-top link.
-- Design tokens, buttons, cards, sections, loading/empty/error states and reduced-motion styling.
-- Dedicated feature folders for all seven members and a documented rocket/scroll interface.
-- Build/tests in GitHub Actions and Vercel SPA fallback for old `/pocs` links.
+- Responsive header with transparent hero styling, active section links, a mobile menu, keyboard focus handling and a skip link.
+- Single-page navigation with URL hashes that follow scrolling, including Past POCs at `/#pocs`. The legacy `/pocs` route redirects to that section.
+- Sunset hero with a scroll-driven launch sequence, countdown, ignition, liftoff and nightfall.
+- Rocket cursor with smooth steering, flame and exhaust, magnetic controls, hover labels and card spotlights on supported desktop pointers.
+- Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
+- Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
+- Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
+- Footer with VIT Stellar contact details and social channels, contributor credits and a back-to-top link.
+- Automated frontend checks in GitHub Actions and deployment through Vercel.
 
-## Feature status
+## Content and remaining work
 
-| Feature | Status |
+| Area | Current status |
 | --- | --- |
-| Foundation, header, footer | Implemented by Member 1 |
-| Landing and event description | Reference-matched sunset hero; Member 2 finalises event content |
-| Rocket | Photographed hero rocket; retained SVG fallback and contract for Member 3’s 3D work |
-| Space and scroll | Scroll-scrubbed launch sequence in the pinned hero (countdown, ignition, liftoff, nightfall), inertia wheel scrolling, velocity marquee and section reveals; a steering rocket cursor (flame and sparks scale with speed) with magnetic buttons, hover labels, card spotlights and hero parallax (mouse and trackpad only); static for reduced motion |
-| About Thrust Tech | Placeholder for Member 5 |
-| Past-year POCs | Home-page section at `/#pocs` and empty data model for Member 6 |
-| Glimpses | Empty-state section and photo data model for Member 7 |
+| Foundation, navigation and footer | Implemented and integrated. |
+| Landing and event description | Sunset hero implemented; final programme, dates and venue are pending. |
+| Rocket | The hero rocket uses image assets; the SVG fallback and component contract remain available for future 3D model integration. A 3D model is not yet mounted. |
+| Scroll and cursor | Implemented, with frame-rate-independent cursor smoothing and reduced-motion fallbacks. |
+| Thrust Tech | Implemented, including repeatable logo entrance and collaboration animation. |
+| Past-year POCs | Integrated into the main page; approved historical names and details are pending. |
+| Glimpses | Gallery interface implemented; approved historical photographs and captions are pending. |
 
-Games and backend work are deferred. Dates, venue, POC names and historical event photographs have not been invented. The hero is a generated design background derived from the supplied reference, not documentary event photography. This is a foundation preview, not a launch-ready event announcement.
+Games and backend work are deferred. Dates, venue, POC names and historical photographs have not been invented. The hero artwork is a design background, not documentary event photography. Event details should be approved before the public announcement.
 
 ## Team workflow
 
-Read **[the team handoff](docs/TEAM_HANDOFF.md)** for ownership, existing branch names, setup order, shared components, design tokens and the rocket interface. After the foundation merges into `main`, update your assigned branch and work in your own feature folder. Coordinate global styles, routing and dependencies with Member 1.
+Read **[the team handoff](docs/TEAM_HANDOFF.md)** for the original seven-member ownership plan, branch names, shared components, design tokens and rocket interface. The contribution credits above record work delivered so far.
 
-```
+Update your feature branch from `main` before starting work. Keep changes in the relevant feature folder and coordinate global styles, routing and dependencies with Aadit.
+
+```text
 src/
   app/                    # composition, routes, focus and error boundary
-  components/layout/      # Member 1: header/footer
-  components/ui/          # Member 1: shared building blocks
-  config/                 # Member 1: navigation, contacts and credits
-  styles/                 # Member 1: global styles and tokens
-  features/landing/       # Member 2
-  features/rocket/        # Member 3
-  features/space/         # Member 4
-  features/thrust-tech/   # Member 5
-  features/pocs/          # Member 6
-  features/glimpses/      # Member 7
-  test/                   # shared integration checks
-public/assets/            # approved rocket, POC and gallery assets
+  components/layout/      # shared header and footer
+  components/ui/          # shared building blocks
+  config/                 # navigation, contacts and contributor credits
+  styles/                 # global styles and design tokens
+  features/landing/       # landing and event description
+  features/rocket/        # rocket component contract and SVG fallback
+  features/space/         # launch sequence, scrolling and cursor effects
+  features/thrust-tech/   # Thrust Tech introduction and animation
+  features/pocs/          # past-year POC section and data
+  features/glimpses/      # gallery, globe and lightbox
+  test/                   # automated checks
+public/assets/            # rocket, POC and gallery assets
 ```
 
 ## Hosting
 
-`npm run build` generates `dist/`. Vercel configuration is provided; hosting requires a connected Vercel project. Other static hosts must serve `index.html` for non-file routes such as `/pocs`. No deployment is performed by this foundation change.
+The repository is connected to Vercel, which deploys updates merged into `main`. Run `npm test` and `npm run build` before merging. The production bundle is generated in `dist/`.
+
+`vercel.json` provides the SPA fallback for direct and legacy route visits. Other static hosts must serve `index.html` for non-file routes such as `/pocs`. No backend services are needed.
 
 References: [VIT Stellar](https://vitstellar.vercel.app/) for header/navigation and [ROVARIS](https://rovaris2026.vercel.app/) for the event-site direction. Aerovate uses its own implementation and palette.
