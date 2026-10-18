@@ -15,7 +15,7 @@ Built together by the **Aerovate Tech Team**.
 | [Aadit Garg](https://github.com/aaditgarg01) · [LinkedIn](https://www.linkedin.com/in/aadit-garg22/) | Project setup and shared frontend foundation; theme, reusable UI, responsive header and footer; single-page navigation, section URL tracking and accessibility; feature integration, fixes, testing and Vercel deployment. |
 | [Darsh L](https://github.com/Dracula27581234) · [LinkedIn](https://www.linkedin.com/in/darsh-lakshmikanth-b83326388/) | Background artwork. |
 | [Harsh Choudhary](https://github.com/SpyApple-web) · [LinkedIn](https://www.linkedin.com/in/harsh-choudhary-4b4300424/) | Scroll animation and cursor interactivity. |
-| [Rishit Aggarwal](https://github.com/aggarwalrishit9) | Thrust Tech section. |
+| [Rishit Aggarwal](https://github.com/aggarwalrishit9) · [LinkedIn](https://www.linkedin.com/in/rishit-aggarwal-88504b419/) | Thrust Tech section. |
 | [Sushant Singh](https://github.com/singhsushant4684-eng) · [LinkedIn](https://www.linkedin.com/in/sushant-singh-663301378/) | Glimpses gallery. |
 
 Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: Each person can have GitHub and LinkedIn profiles; the footer shows names and links without contribution descriptions. Keep this table in sync when changing contributor details.
@@ -47,7 +47,7 @@ npm run preview    # serve the production build
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
 - Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
-- Compact footer with VIT Stellar contact details, social channels, contributor profile links and the interactive AEROVATE wordmark.
+- Twilight blossom footer matching the supplied design, with live contact text, social icons, GitHub/LinkedIn contributor links and an interactive AEROVATE 3.0 label.
 - Automated frontend checks in GitHub Actions and deployment through Vercel.
 
 ## Content and remaining work
@@ -96,3 +96,7 @@ The repository is connected to Vercel, which deploys updates merged into `main`.
 `vercel.json` provides the SPA fallback for direct and legacy route visits. Other static hosts must serve `index.html` for non-file routes such as `/pocs`. No backend services are needed.
 
 References: [VIT Stellar](https://vitstellar.vercel.app/) for header/navigation and [ROVARIS](https://rovaris2026.vercel.app/) for the event-site direction. Aerovate uses its own implementation and palette.
+
+## Footer artwork
+
+The twilight blossom landscape in `public/assets/footer/twilight-blossom.webp` is a text-free background derived from the supplied footer mockup. All headings, contact details, social icons and contributor links are rendered as accessible HTML/SVG rather than baked into the image. The artwork was prepared using the image-generation skill; the AEROVATE letter interaction is retained in the small edition label.
