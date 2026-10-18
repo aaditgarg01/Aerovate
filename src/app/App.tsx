@@ -6,7 +6,7 @@ import { LandingSection, EventSection } from '../features/landing/LandingSection
 import { ThrustTechSection } from '../features/thrust-tech/ThrustTechSection';
 import { PocsSection } from '../features/pocs/PocsSection';
 import { GlimpsesSection } from '../features/glimpses/GlimpsesSection';
-import { ScrollMotion } from '../features/space/ScrollMotion';
+import { ScrollMarquee, ScrollMotion } from '../features/space/ScrollMotion';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RouteEffects } from './RouteEffects';
 
@@ -15,8 +15,9 @@ export function App() {
     <main id="main-content" tabIndex={-1}><ErrorBoundary><Routes>
       <Route path="/" element={
         <>
-          <LandingSection />
+          <div className="hero-track"><LandingSection /></div>
           <div className="page-sheet">
+            <ScrollMarquee />
             <ThrustTechSection />
             <div className="page-container">
               <EventSection />

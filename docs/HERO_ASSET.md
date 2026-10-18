@@ -27,3 +27,12 @@ Built-in ImageGen was used to correct the vertical rocket label to **VIT STELLAR
 Exact edit prompt:
 
 Use case: text-localization. Input image 1 is the exact edit target, the existing Aerovate website hero background. Correct ONLY the black lettering physically printed vertically on the white rocket body. The exact text must be "VIT STELLAR", spelled V I T, a small gap, S T E L L A R — make sure STELLAR has TWO consecutive L letters. Stack the upright letters top-to-bottom as V, I, T, gap, S, T, E, L, L, A, R. Fit the full text neatly on the same white panel, with realistic black painted lettering following the existing body perspective. Preserve the rocket shape, white/black/red paint, launch rail and tripod, sunset sky, clouds, trees, buildings, field, foreground notebook and tools, composition, lighting, image framing and aspect ratio exactly. Do not add UI or any other text. Change only the misspelled rocket label to the correctly spelled VIT STELLAR. Opaque photographic output.
+
+## Launch sequence layers — 18 October 2026
+
+The scroll-driven launch (`src/features/space/HeroLaunch.tsx`) uses two layers derived from `aerovate-launch-sunset.jpg`, in the same 1740 × 904 pixel space:
+
+- `aerovate-launch-plate.webp` / `.jpg`: the same photograph with the rocket body, nose cone and fins removed (OpenCV Telea inpainting plus a per-row sky gradient). The black launch rail is rebuilt from its visible profile, so it stays on the pad after liftoff.
+- `aerovate-rocket.webp` / `.png`: the rocket cut out on a transparent background, cropped to photo box x 1232–1334, y 264–666. Its placement uses the same object-fit mapping as the plate.
+
+No generative edits were made. When the hero photo changes, regenerate both layers and update `ROCKET_BOX`, `NOZZLE`, `PAD_Y` and `FOCUS` in `HeroLaunch.tsx`. Visitors with reduced motion only ever see the original photograph.
