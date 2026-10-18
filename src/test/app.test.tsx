@@ -67,6 +67,13 @@ describe('Shared foundation', () => {
     expect(Element.prototype.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' });
   });
 
+  it('focuses the gallery anchor while keeping all sections available', async () => {
+    const user = userEvent.setup(); renderAt();
+    await user.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Glimpses' }));
+    await waitFor(() => expect(document.getElementById('glimpses')).toHaveFocus());
+    expect(screen.getByRole('heading', { level: 2, name: 'Glimpses' })).toBeInTheDocument();
+  });
+
   it('offers a working route home for unknown URLs', async () => {
     const user = userEvent.setup(); renderAt('/lost-in-space');
     expect(screen.getByRole('heading', { name: 'A little beyond our orbit.' })).toBeInTheDocument();

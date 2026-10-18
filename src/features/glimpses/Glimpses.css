@@ -1,0 +1,311 @@
+/* Keep your own --primary value here if it differs from this one. */
+.glimpses,
+.lightbox {
+  --primary: var(--color-primary, #34506D);
+  --secondary: #ffffff;
+  --gap: 12px;
+  --row-h: 250px;
+  --reel-h: 230px;
+  --cut: 16px; /* size of the chamfered corners */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------- Section: deep-space backdrop, tinted with the brand blue ---------- */
+.glimpses {
+  /* full-bleed even when the page puts it inside a narrower container */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  box-sizing: border-box;
+  text-align: left;
+  color: var(--secondary);
+  overflow: hidden;
+  padding: 0 0 clamp(2.5rem, 7vw, 6rem);
+  position: relative;
+  background: transparent; /* the page's own background shows through, so there is no seam */
+}
+.glimpses__inner { max-width: 1280px; margin-inline: auto; padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem) 0; }
+
+/* ---------- Heading, centred between the two rows ---------- */
+/* Heading + globe share exactly one screen: the globe takes whatever height the heading leaves */
+.glimpses__hero { display: flex; flex-direction: column; box-sizing: border-box; height: 100vh; height: 100svh; min-height: 520px; padding-top: var(--site-header-h, 0px); }
+.glimpses__head { flex: none; text-align: center; padding: clamp(0.5rem, 2svh, 1.25rem) 1rem 0; }
+
+/* ---------- Title: letters ignite in sequence, end up solid white ---------- */
+.glimpses__title {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  margin: 0; padding-bottom: 0.16em; /* room for the descender of the "p" */ color: var(--secondary);
+  font-size: clamp(3rem, min(15vw, 16svh), 11rem); font-weight: 800; line-height: 1; letter-spacing: -0.03em;
+  cursor: default; user-select: none;
+}
+.glimpses__letter { display: inline-block; padding-inline: 0.01em; color: var(--secondary); }
+
+/* Before it scrolls into view: hollow outline only */
+.glimpses__title:not(.is-in) .glimpses__letter {
+  color: transparent; -webkit-text-stroke: 2px rgb(255 255 255 / 0.2);
+}
+/* Intro: left to right, each letter fills with white. "backwards" = rests as plain white afterwards. */
+.glimpses__title.is-in:not(.is-done) .glimpses__letter {
+  animation: ignite 1.8s var(--ease) backwards;
+  animation-delay: calc(var(--n) * 170ms + 150ms);
+}
+@keyframes ignite {
+  0%   { color: transparent; -webkit-text-stroke: 2px rgb(255 255 255 / 0.2); text-shadow: 0 0 0 transparent; }
+  45%  { color: #fff; -webkit-text-stroke: 2px #fff;
+         text-shadow: 0 0 0.3em rgb(255 255 255 / 0.9), 0 0 0.9em rgb(150 200 235 / 0.7); }
+  100% { color: #fff; -webkit-text-stroke: 0 #fff; text-shadow: 0 0 0 transparent; }
+}
+
+/* After the intro: a letter flares when the pointer passes over it, then settles back to white */
+@media (hover: hover) {
+  .glimpses__title.is-done .glimpses__letter:hover { animation: flare 1.4s ease-out; }
+}
+@keyframes flare {
+  0%   { transform: translateY(-0.05em) scale(1.05);
+         text-shadow: 0 0 0.25em rgb(255 255 255 / 0.95), 0 0 0.8em rgb(150 200 235 / 0.8); }
+  100% { transform: none; text-shadow: 0 0 0 transparent; }
+}
+
+/* ---------- Globe: photos on a slowly turning sphere ---------- */
+.globe-wrap { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-top: clamp(0.75rem, 3svh, 2rem); }
+.globe {
+  position: relative;
+  flex: 1 1 0; min-height: 0;
+  perspective: var(--persp, 900px);
+  perspective-origin: 50% 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
+}
+.globe__ball { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; will-change: transform; }
+/* Sphere body + grid lines */
+.globe__orb {
+  position: absolute; left: 50%; top: 50%; pointer-events: none;
+  width: calc(var(--R) * 2.08); height: calc(var(--R) * 2.08); transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, rgb(255 255 255 / 0.16), transparent 38%),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--primary) 38%, transparent) 0%, color-mix(in srgb, var(--primary) 22%, transparent) 60%, transparent 71%);
+  box-shadow: inset 0 0 calc(var(--R) * 0.25) rgb(255 255 255 / 0.12), 0 0 calc(var(--R) * 0.35) color-mix(in srgb, var(--primary) 55%, transparent);
+}
+.globe__lines { position: absolute; left: 50%; top: 50%; width: 0; height: 0; list-style: none; transform-style: preserve-3d; pointer-events: none; }
+.globe__line {
+  position: absolute; left: 0; top: 0; border-radius: 50%; box-sizing: border-box; pointer-events: none;
+  border: 1px solid rgb(255 255 255 / 0.26);
+  box-shadow: 0 0 6px rgb(255 255 255 / 0.1);
+}
+.globe__line--equator { border-color: rgb(255 255 255 / 0.42); }
+
+/* Orbit ring */
+.globe__ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; list-style: none; transform-style: preserve-3d; pointer-events: none; }
+.globe__ring-line { position: absolute; left: 0; top: 0; border-radius: 50%; box-sizing: border-box; border: 1px solid rgb(255 255 255 / 0.16); pointer-events: none; }
+.globe__ring-dot {
+  position: absolute; left: 0; top: 0; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #fff; pointer-events: none;
+  box-shadow: 0 0 10px 3px rgb(255 255 255 / 0.7), 0 0 26px 8px rgb(150 200 235 / 0.45);
+}
+
+.globe__card {
+  position: absolute; left: 50%; top: 50%; list-style: none;
+  width: calc(var(--ratio) * var(--card-h)); height: var(--card-h);
+  margin-left: calc(var(--ratio) * var(--card-h) / -2); margin-top: calc(var(--card-h) / -2);
+  transform-style: preserve-3d;
+}
+.globe__face { width: 100%; height: 100%; backface-visibility: hidden; transition: transform 0.55s var(--ease), opacity 0.4s; }
+
+/* When one photo is enlarged, the rest step back */
+.globe__ball:has(.is-active) .globe__card:not(.is-active) .globe__face { opacity: 0.3; }
+
+/* Cut-corner frame: the button is the light edge, the images sit 1.5px inside it. */
+.globe__btn {
+  --cut: calc(var(--card-h) * 0.13);
+  position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; cursor: zoom-in;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.12) 38%, rgb(255 255 255 / 0.12) 62%, rgb(255 255 255 / 0.7));
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  filter: brightness(calc(0.45 + 0.55 * var(--f, 1))); /* darker as it turns away */
+}
+.globe__card.is-active .globe__btn { filter: none; }
+.globe__img, .globe__hi {
+  position: absolute; inset: 1.5px; width: calc(100% - 3px); height: calc(100% - 3px);
+  object-fit: cover; display: block; background: rgb(255 255 255 / 0.08); color: transparent; /* hides alt text if an image is missing */
+  clip-path: polygon(calc(var(--cut) - 1px) 0, 100% 0, 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, 0 100%, 0 calc(var(--cut) - 1px));
+}
+.globe__hi { opacity: 0; transition: opacity 0.4s ease; }
+.globe__hi.is-loaded { opacity: 1; }
+
+.globe__caption { flex: none; min-height: 1.6em; margin: 0 1rem 0.75rem; text-align: center; font-size: 1.05rem; opacity: 0.9; }
+
+/* Visually hidden controls for keyboard / screen-reader users */
+.reel__status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.reel__toggle:not(:focus-visible) {
+  position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------- Filters ---------- */
+.glimpses__browse { margin: 0 0 1.25rem; font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; }
+.glimpses__filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
+.glimpses__chip {
+  min-height: 44px; padding: 0 1.2rem; border-radius: 999px; cursor: pointer;
+  border: 2px solid var(--secondary); background: transparent; color: var(--secondary);
+  font: inherit; font-weight: 600;
+  transition: transform 0.2s var(--ease), background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.glimpses__chip--small { min-height: 40px; padding: 0 1rem; font-size: 0.9rem; font-weight: 500; border-width: 1.5px; }
+.glimpses__chip:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgb(0 0 0 / 0.6); }
+.glimpses__chip:active { transform: translateY(0) scale(0.97); }
+.glimpses__chip[aria-pressed="true"] { background: var(--secondary); color: var(--primary); }
+.glimpses__count { margin: 0 0 1.25rem; font-size: 0.95rem; opacity: 0.8; text-align: left; }
+
+/* ---------- Grid: justified rows, 3D stage ---------- */
+.glimpses__grid { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--gap); perspective: 1400px; }
+.glimpses__grid::after { content: ""; flex-grow: 1000000; }
+
+.glimpses__item {
+  --rx: 0deg; --ry: 0deg; --gx: 50%; --gy: 50%;
+  position: relative; min-width: 0; overflow: hidden; border-radius: 10px;
+  background: rgb(255 255 255 / 0.1);
+  flex-grow: calc(var(--ratio) * 100);
+  flex-basis: calc(var(--ratio) * var(--row-h));
+  box-shadow: 0 18px 32px -22px rgb(0 0 0 / 0.7);
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.25s ease-out, box-shadow 0.3s;
+  will-change: transform;
+  opacity: 0; /* hidden until the entrance runs */
+}
+.glimpses__item::before { content: ""; display: block; padding-top: calc(100% / var(--ratio)); }
+.glimpses__item:hover { box-shadow: 0 32px 50px -24px rgb(0 0 0 / 0.85); z-index: 1; }
+
+.is-in .glimpses__item { animation: tip-up 0.9s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+@keyframes tip-up {
+  from { opacity: 0; translate: 0 48px; rotate: 1 0 0 -22deg; }
+  to   { opacity: 1; translate: 0 0;    rotate: 1 0 0 0deg; }
+}
+
+.glimpses__open { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: zoom-in; display: block; width: 100%; height: 100%; }
+.glimpses__open img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transform: scale(1.08);
+  transition: opacity 0.6s ease, transform 0.6s var(--ease);
+}
+.glimpses__open img.is-loaded { opacity: 1; transform: scale(1); }
+.glimpses__item:hover .glimpses__open img.is-loaded { transform: scale(1.06); }
+
+.glimpses__open::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  background: radial-gradient(circle at var(--gx) var(--gy), rgb(255 255 255 / 0.28), transparent 55%);
+}
+.glimpses__item:hover .glimpses__open::after { opacity: 1; }
+
+.glimpses__caption {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 2rem 0.9rem 0.7rem; text-align: left;
+  color: var(--secondary); font-size: 0.92rem; line-height: 1.3;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.65), transparent);
+  opacity: 0; translate: 0 8px; transition: opacity 0.25s, translate 0.35s var(--ease);
+}
+.glimpses__open:hover .glimpses__caption,
+.glimpses__open:focus-visible .glimpses__caption { opacity: 1; translate: 0 0; }
+@media (hover: none) { .glimpses__caption { opacity: 1; translate: 0 0; } }
+
+.glimpses__missing { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.9rem; opacity: 0.75; }
+.glimpses__empty { padding: 3rem 1rem; text-align: center; border: 2px dashed var(--secondary); border-radius: 12px; }
+.glimpses__empty p { margin: 0 0 1rem; }
+
+.glimpses :focus-visible, .lightbox :focus-visible { outline: 3px solid #ffb703; outline-offset: 3px; }
+
+/* ---------- Lightbox ---------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
+  grid-template-columns: auto 1fr auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: rgb(10 20 28 / 0.95); backdrop-filter: blur(10px);
+  color: var(--secondary);
+  animation: lb-in 0.3s ease both;
+}
+@keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+
+.lightbox__figure {
+  grid-column: 2; margin: 0; max-width: 100%; max-height: 100%; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 4rem 0 1rem;
+  perspective: 1400px;
+}
+.lightbox__figure img {
+  max-width: 100%; max-height: calc(100dvh - 11rem); width: auto; height: auto; object-fit: contain;
+  border-radius: 6px; box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.9);
+  animation: swing 0.6s var(--ease) both;
+}
+@keyframes swing {
+  from { opacity: 0; transform: translateX(calc(var(--dir) * 70px)) rotateY(calc(var(--dir) * -30deg)) scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+.lightbox__figure figcaption { display: flex; flex-direction: column; gap: 0.2rem; text-align: center; padding-inline: 1rem; animation: lb-in 0.5s 0.15s ease both; }
+.lightbox__figure figcaption span { font-size: 0.85rem; opacity: 0.8; }
+.lightbox__missing { padding: 4rem 2rem; border: 2px dashed var(--secondary); border-radius: 12px; }
+
+.lightbox__btn {
+  width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--secondary);
+  background: rgb(255 255 255 / 0.06); color: var(--secondary); cursor: pointer; display: grid; place-items: center;
+  transition: transform 0.2s var(--ease), background-color 0.2s, color 0.2s;
+}
+.lightbox__btn:hover { background: var(--secondary); color: var(--primary); transform: scale(1.08); }
+.lightbox__btn:active { transform: scale(0.95); }
+.lightbox__btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.lightbox__close { position: absolute; top: max(0.75rem, env(safe-area-inset-top)); right: max(0.75rem, env(safe-area-inset-right)); z-index: 2; }
+.lightbox__prev { grid-column: 1; margin-left: 1rem; }
+.lightbox__next { grid-column: 3; margin-right: 1rem; }
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .glimpses { --row-h: 170px; --gap: 8px; --reel-h: 150px; --cut: 12px; }
+  .glimpses__grid { perspective: 900px; }
+  .lightbox { grid-template-columns: 1fr; }
+  .lightbox__figure { grid-column: 1; padding-bottom: 5.5rem; }
+  .lightbox__figure img { max-height: calc(100dvh - 14rem); }
+  .lightbox__prev, .lightbox__next {
+    position: absolute; bottom: max(1rem, env(safe-area-inset-bottom)); margin: 0; width: 56px; height: 56px;
+  }
+  .lightbox__prev { left: 1rem; }
+  .lightbox__next { right: 1rem; }
+}
+
+/* ---------- Reduced motion: rows stop drifting and become swipeable/scrollable ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .glimpses__title .glimpses__letter { color: var(--secondary) !important; -webkit-text-stroke: 0 !important; animation: none !important; }
+  .reel__toggle, .reel__status, .globe__ring-dot { display: none; }
+  .globe__face { transition-duration: 0.01s; }
+  .glimpses__item { opacity: 1; transform: none !important; transition: none; }
+  .is-in .glimpses__item, .lightbox, .lightbox__figure img, .lightbox__figure figcaption { animation: none; }
+  .glimpses__open img { opacity: 1; transform: none !important; transition: none; }
+  .glimpses__open::after { display: none; }
+  .glimpses__chip, .lightbox__btn, .glimpses__caption { transition: none; }
+}
+
+.glimpses--empty { padding: 2rem 1rem; text-align: center; opacity: 0.8; }
+
+/* No photos yet: empty glass frames, and the browse area stays hidden */
+.glimpses__inner.is-hidden { display: none; }
+.globe__btn--empty { cursor: default; }
+.globe__btn--empty::after {
+  content: ""; position: absolute; inset: 1.5px; background: rgb(255 255 255 / 0.07);
+  clip-path: polygon(calc(var(--cut) - 1px) 0, 100% 0, 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, 0 100%, 0 calc(var(--cut) - 1px));
+}
+
+/* Stars and a soft glow behind the globe. They fade out at the top and bottom so the section
+   melts into the sections above and below instead of ending in a hard edge. */
+.glimpses::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 24px 34px, rgb(255 255 255 / 0.6), transparent),
+    radial-gradient(1px 1px at 126px 86px, rgb(255 255 255 / 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 262px 168px, rgb(255 255 255 / 0.65), transparent),
+    radial-gradient(1px 1px at 344px 44px, rgb(255 255 255 / 0.4), transparent),
+    radial-gradient(2px 2px at 452px 214px, rgb(255 255 255 / 0.55), transparent),
+    radial-gradient(1px 1px at 522px 124px, rgb(255 255 255 / 0.35), transparent),
+    radial-gradient(ellipse 55% 42% at 50% 40%, color-mix(in srgb, var(--primary) 32%, transparent), transparent 72%);
+  background-size: 560px 260px, 560px 260px, 560px 260px, 560px 260px, 560px 260px, 560px 260px, 100% 100%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+}
+.glimpses > * { position: relative; z-index: 1; }
+
+/* Browse area with no photos yet: quiet empty tiles */
+.glimpses__item--empty { cursor: default; background: rgb(255 255 255 / 0.05); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); transform: none; }
+.glimpses__item--empty:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); }
