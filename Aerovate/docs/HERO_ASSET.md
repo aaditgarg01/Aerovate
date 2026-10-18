@@ -1,0 +1,38 @@
+# Aerovate sunset hero
+
+The hero matches the supplied sunset reference with responsive HTML text and navigation over a clean photographic plate. The rocket in this image is static; the separate rocket and scroll modules remain available for the team’s future work.
+
+## Asset provenance
+
+- Mode: built-in ImageGen, editing the user-supplied reference to remove UI overlays.
+- Input: codex-clipboard-4a853dff-df50-4554-9207-89582442404c.png.
+- Original generated output: exec-691ef9b7-e0ce-4664-92ae-4f7290203fd3.png, 1740 × 904.
+- Website assets: public/assets/hero/aerovate-launch-sunset.webp (about 74 KB), with JPEG fallback (about 100 KB).
+- This is a generated design background based on a reference, not documentary Aerovate event photography.
+- Encoding: quality 85, no creative alteration after generation.
+
+## Exact generation prompt
+
+Use case: precise-object-edit. Asset type: clean photographic background for the existing Aerovate website hero. Input image 1 is the edit target and composition reference. Remove ALL website UI overlays from this image: the top-left Aerovate icon, wordmark and tagline, every navigation link, the circular arrow button, the cyan dot and small label, the large 'Ideas take flight.' headline, the small all-caps event label, and the two-line paragraph. Inpaint those areas naturally with the matching dark blue sunset sky. Preserve the original photograph, composition and framing: a tall narrow white and black model rocket with red fins on its black launch rail/tripod at about 74% of image width, rocket top at 20% height and tripod touching the bottom edge; a campus field with trees and a distant low building, warm orange-pink sunset near the right horizon, navy-blue sky, and out-of-focus notebook and tools in the bottom-left foreground. Preserve the small vertical VIT STELLAR lettering physically printed on the rocket. Keep the left half mostly open dark-blue sky for live HTML text later. Do not add new text, symbols, UI, people, additional rockets, stars, planets or watermarks. Produce a polished natural photographic plate, landscape approximately 1.925:1 matching the reference. Keep everything except the UI removal unchanged. Opaque image, not transparent.
+
+## Validation
+
+Seven integration tests passed. TypeScript and Vite production build passed. Desktop and 390 × 844 phone layouts checked: no horizontal overflow, readable headline, mobile menu Escape handling, POCs navigation and direct refresh. Browser console showed no errors or warnings.
+
+
+## Rocket lettering correction — 16 October 2026
+
+Built-in ImageGen was used to correct the vertical rocket label to **VIT STELLAR**, including both L letters. The selected output is `exec-8844812e-2fb4-484e-b8fe-00728740fdaf.png`. The existing WebP and JPEG website assets were replaced with quality-85 encodings; the composition and dimensions remain 1740 × 904.
+
+Exact edit prompt:
+
+Use case: text-localization. Input image 1 is the exact edit target, the existing Aerovate website hero background. Correct ONLY the black lettering physically printed vertically on the white rocket body. The exact text must be "VIT STELLAR", spelled V I T, a small gap, S T E L L A R — make sure STELLAR has TWO consecutive L letters. Stack the upright letters top-to-bottom as V, I, T, gap, S, T, E, L, L, A, R. Fit the full text neatly on the same white panel, with realistic black painted lettering following the existing body perspective. Preserve the rocket shape, white/black/red paint, launch rail and tripod, sunset sky, clouds, trees, buildings, field, foreground notebook and tools, composition, lighting, image framing and aspect ratio exactly. Do not add UI or any other text. Change only the misspelled rocket label to the correctly spelled VIT STELLAR. Opaque photographic output.
+
+## Launch sequence layers — 18 October 2026
+
+The scroll-driven launch (`src/features/space/HeroLaunch.tsx`) uses two layers derived from `aerovate-launch-sunset.jpg`, in the same 1740 × 904 pixel space:
+
+- `aerovate-launch-plate.webp` / `.jpg`: the same photograph with the rocket body, nose cone and fins removed (OpenCV Telea inpainting plus a per-row sky gradient). The black launch rail is rebuilt from its visible profile, so it stays on the pad after liftoff.
+- `aerovate-rocket.webp` / `.png`: the rocket cut out on a transparent background, cropped to photo box x 1232–1334, y 264–666. Its placement uses the same object-fit mapping as the plate.
+
+No generative edits were made. When the hero photo changes, regenerate both layers and update `ROCKET_BOX`, `NOZZLE`, `PAD_Y` and `FOCUS` in `HeroLaunch.tsx`. Visitors with reduced motion only ever see the original photograph.
