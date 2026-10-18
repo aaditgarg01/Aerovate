@@ -19,7 +19,7 @@ import './cursor.css';
  */
 
 const INTERACTIVE = 'a, button, [role="button"], label, summary, select, input, textarea';
-const MAGNETIC = '.button, .header-contact, .contact-orbit, .menu-toggle, .tt-cta, .glimpses__chip, .brand, .lightbox button';
+const MAGNETIC = '.button, .header-contact, .contact-orbit, .menu-toggle, .tt-cta, .glimpses__chip, .brand, .stellar-brand, .lightbox button';
 const STICKY = '.header-contact, .contact-orbit, .menu-toggle';
 const SPOTLIGHT = '.empty-state, .card, .event-facts';
 const VIEW = '.glimpses__open, .globe__btn:not(.globe__btn--empty), [data-zoom]';
