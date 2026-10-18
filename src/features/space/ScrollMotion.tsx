@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { clampProgress } from '../rocket/types';
-import { motionAllowed, smoothWheel } from './motion';
+import { footerRevealProgress, motionAllowed, smoothWheel } from './motion';
 import './space.css';
 
 /** Elements that animate in the first time they enter the viewport. */
@@ -54,7 +54,7 @@ export function ScrollMotion() {
       // footer wordmark: letters rise from below as the footer comes up
       if (wordmark) {
         const r = wordmark.getBoundingClientRect();
-        wordmark.style.setProperty('--fp', String(clampProgress((window.innerHeight - r.top) / (r.height + window.innerHeight * .35))));
+        wordmark.style.setProperty('--fp', String(footerRevealProgress(r.top, r.height, window.innerHeight)));
       }
       if (Math.abs(velocity) > .05 || marqueeVisible) frame = requestAnimationFrame(update);
     };
