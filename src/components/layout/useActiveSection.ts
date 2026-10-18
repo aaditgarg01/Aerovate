@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { sections } from '../../config/site';
 
-/** Track the section below the fixed header without changing browser history or focus. */
+/** Track the reading position; replace the URL without adding history, scrolling or moving focus. */
 export function useActiveSection(pathname: string) {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -9,6 +9,7 @@ export function useActiveSection(pathname: string) {
   useEffect(() => {
     if (pathname !== '/') return;
     let frame = 0;
+    let hasScrolled = false;
     const update = () => {
       frame = 0;
       const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
@@ -19,6 +20,14 @@ export function useActiveSection(pathname: string) {
         if (section && section.getBoundingClientRect().top <= readingLine) current = id;
       }
       setActiveSection(current);
+      if (hasScrolled) {
+        const hash = current === sections.home ? '' : `#${current}`;
+        if (window.location.hash !== hash) {
+          // Passive URL updates must not trigger RouteEffects and scroll back to an anchor.
+          // Preserve React Router's history state and the current query string.
+          window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${hash}`);
+        }
+      }
       // Keep the header transparent while the pinned launch sequence is playing.
       const track = document.documentElement.classList.contains('motion-ready') ? document.querySelector('.hero-track') : null;
       const launching = !!track && track.getBoundingClientRect().bottom > headerHeight + 1;
@@ -27,8 +36,9 @@ export function useActiveSection(pathname: string) {
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
+    const onScroll = () => { hasScrolled = true; schedule(); };
     schedule();
-    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', schedule);
     // Content and header dimensions can change as images load or the layout reflows.
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
@@ -37,7 +47,7 @@ export function useActiveSection(pathname: string) {
     }
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', schedule);
       observer?.disconnect();
     };

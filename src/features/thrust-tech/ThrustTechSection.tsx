@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import "./thrust-tech.css";
+import { replayHeroOnEntry } from "./replayHeroOnEntry";
 
 type Props = {
   /** Anchor id used by the navbar link (#thrust-tech). Remove it here if a parent already sets it. */
@@ -34,38 +35,7 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cleanups: Array<() => void> = [];
 
-    /* hero sequence: plays once when first scrolled into view, and again only when the navbar link is clicked */
-    let played = false;
-    let replayPending = false;
-    const play = () => {
-      hero.classList.remove("tt-go");
-      void hero.offsetWidth; // restart the CSS animations
-      hero.classList.add("tt-go");
-      played = true;
-      replayPending = false;
-    };
-    if ("IntersectionObserver" in window) {
-      const io = new IntersectionObserver(
-        (e) => {
-          if (e[0].isIntersecting && (!played || replayPending)) play();
-        },
-        { threshold: 0.25 }
-      );
-      io.observe(hero);
-      cleanups.push(() => io.disconnect());
-    } else {
-      hero.classList.add("tt-go");
-    }
-    const onNavClick = (ev: MouseEvent) => {
-      const a = (ev.target as Element | null)?.closest?.('a[href$="#thrust-tech"]');
-      if (!a) return;
-      const r = hero.getBoundingClientRect();
-      const inView = r.top < window.innerHeight * 0.75 && r.bottom > window.innerHeight * 0.25;
-      if (inView) play();
-      else replayPending = true; // plays as soon as the page scrolls the section into view
-    };
-    document.addEventListener("click", onNavClick);
-    cleanups.push(() => document.removeEventListener("click", onNavClick));
+    cleanups.push(replayHeroOnEntry(hero, root.querySelector<HTMLElement>("#tt-emblem")!, id, rm));
 
     /* stars: sparse, slow twinkle and drift, paused when off-screen */
     type Star = { x: number; y: number; r: number; a: number; p: number; s: number };
@@ -308,7 +278,7 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
     });
 
     return () => cleanups.forEach((fn) => fn());
-  }, []);
+  }, [id]);
 
   return (
     <div className="tt tt-js" id={id} ref={rootRef} tabIndex={-1} role="region" aria-labelledby={`${id}-title`}>
