@@ -8,13 +8,16 @@
   --reel-h: 230px;
   --cut: 16px; /* size of the chamfered corners */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* size of the "Glimpses" heading: big, but never more than ~21% of the screen height */
+  --title-fs: clamp(3rem, min(11vw, 21svh), 14rem);
 }
 
 /* ---------- Section: deep-space backdrop, tinted with the brand blue ---------- */
 .glimpses {
-  /* full-bleed even when the page puts it inside a narrower container */
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
+  /* full-bleed even when the page puts it inside a narrower container.
+     --glimpses-vw is the page width without the scrollbar (set by the globe), so no sideways scrolling. */
+  width: var(--glimpses-vw, 100vw);
+  margin-inline: calc(50% - var(--glimpses-vw, 100vw) / 2);
   box-sizing: border-box;
   text-align: left;
   color: var(--secondary);
@@ -25,16 +28,17 @@
 }
 .glimpses__inner { max-width: 1280px; margin-inline: auto; padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem) 0; }
 
-/* ---------- Heading, centred between the two rows ---------- */
+/* ---------- Heading ---------- */
 /* Heading + globe share exactly one screen: the globe takes whatever height the heading leaves */
 .glimpses__hero { display: flex; flex-direction: column; box-sizing: border-box; height: 100vh; height: 100svh; min-height: 520px; padding-top: var(--site-header-h, 0px); }
-.glimpses__head { flex: none; text-align: center; padding: clamp(0.5rem, 2svh, 1.25rem) 1rem 0; }
+.glimpses__head { flex: none; position: relative; z-index: 1; text-align: center; padding: clamp(0.25rem, 1svh, 0.75rem) 0 0; }
 
 /* ---------- Title: letters ignite in sequence, end up solid white ---------- */
 .glimpses__title {
   display: flex; flex-wrap: wrap; justify-content: center;
-  margin: 0; padding-bottom: 0.16em; /* room for the descender of the "p" */ color: var(--secondary);
-  font-size: clamp(3rem, min(15vw, 16svh), 11rem); font-weight: 800; line-height: 1; letter-spacing: -0.03em;
+  margin: 0; padding-bottom: 0.16em; /* room for the descender of the "p" */
+  color: var(--secondary);
+  font-size: var(--title-fs); font-weight: 800; line-height: 1; letter-spacing: -0.03em;
   cursor: default; user-select: none;
 }
 .glimpses__letter { display: inline-block; padding-inline: 0.01em; color: var(--secondary); }
@@ -66,7 +70,7 @@
 }
 
 /* ---------- Globe: photos on a slowly turning sphere ---------- */
-.globe-wrap { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-top: clamp(0.75rem, 3svh, 2rem); }
+.globe-wrap { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-top: clamp(0.5rem, 2svh, 1.5rem); }
 .globe {
   position: relative;
   flex: 1 1 0; min-height: 0;
@@ -76,7 +80,26 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y;
 }
+/* the rocket and the globe live in this one shared 3D space */
+.globe__world { position: absolute; inset: 0; transform-style: preserve-3d; }
 .globe__ball { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; will-change: transform; }
+
+/* Rocket flying in the background, behind the globe */
+.globe__rocket { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; pointer-events: none; will-change: transform; }
+.globe__rocket-plane {
+  position: absolute; left: 0; top: 0;
+  width: var(--rl); height: calc(var(--rl) * 0.3);
+  margin-left: calc(var(--rl) / -2); margin-top: calc(var(--rl) * -0.15);
+  filter: drop-shadow(0 0 10px rgb(150 200 235 / 0.35));
+}
+.globe__rocket-plane.is-cross { transform: rotateX(90deg); }
+.globe__rocket-plane svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rocket__trail { transform-box: fill-box; transform-origin: right center; animation: rocket-flame 0.22s ease-in-out infinite alternate; }
+@keyframes rocket-flame {
+  from { transform: scaleX(0.75); opacity: 0.75; }
+  to   { transform: scaleX(1.15); opacity: 1; }
+}
+
 /* Sphere body + grid lines */
 .globe__orb {
   position: absolute; left: 50%; top: 50%; pointer-events: none;
@@ -266,10 +289,10 @@
   .lightbox__next { right: 1rem; }
 }
 
-/* ---------- Reduced motion: rows stop drifting and become swipeable/scrollable ---------- */
+/* ---------- Reduced motion: nothing moves ---------- */
 @media (prefers-reduced-motion: reduce) {
   .glimpses__title .glimpses__letter { color: var(--secondary) !important; -webkit-text-stroke: 0 !important; animation: none !important; }
-  .reel__toggle, .reel__status, .globe__ring-dot { display: none; }
+  .reel__toggle, .reel__status, .globe__ring-dot, .globe__rocket { display: none; }
   .globe__face { transition-duration: 0.01s; }
   .glimpses__item { opacity: 1; transform: none !important; transition: none; }
   .is-in .glimpses__item, .lightbox, .lightbox__figure img, .lightbox__figure figcaption { animation: none; }
