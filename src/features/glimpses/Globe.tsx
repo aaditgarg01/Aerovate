@@ -1,7 +1,7 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import type { Glimpse } from "./data";
-import { visibleAnimation } from "../space/visibleAnimation";
+import RocketCanvas from "./RocketCanvas";
 
 const TILT = -10; // degrees: look at the globe from slightly above
 const SPIN = 14; // degrees per second
@@ -12,7 +12,6 @@ const PARALLELS = [-60, -30, 0, 30, 60]; // rings of latitude
 const RING = 1.45; // orbit ring radius, relative to the globe
 const DOTS = [0, 180]; // where the glowing dots sit on the ring (degrees)
 const POP = 2.7; // size of the enlarged photo relative to its resting size
-const ROCKET_SPEED = 0.3; // radians per second (one lap takes about 21 seconds)
 
 interface Card {
   key: string;
@@ -81,64 +80,13 @@ function popTransform(card: Card, ry: number, R: number): string {
   );
 }
 
-// The rocket cruises across the background in a wide figure-eight, always behind the globe.
-// It passes behind the globe, swings nearer (bigger) and further (smaller), and points along its path.
-function rocketTransform(t: number, R: number): string {
-  const x = 2.2 * R * Math.sin(t);
-  const y = 0.55 * R * Math.sin(2 * t) - 0.1 * R;
-  const z = -1.8 * R + 0.5 * R * Math.cos(t);
-  const vx = 2.2 * Math.cos(t);
-  const vy = 1.1 * Math.cos(2 * t);
-  const vz = -0.5 * Math.sin(t);
-  const yaw = (Math.atan2(-vz, vx) * 180) / Math.PI;
-  const pitch = (Math.atan2(vy, Math.hypot(vx, vz)) * 180) / Math.PI;
-  return `translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}deg) rotateZ(${pitch}deg)`;
-}
-
-// One flat picture of the rocket, pointing right. Two of them cross at right angles
-// so the rocket still looks solid when it turns.
-function RocketPlane({ cross = false }: { cross?: boolean }) {
-  const uid = useId().replace(/:/g, "");
-  return (
-    <span className={`globe__rocket-plane${cross ? " is-cross" : ""}`}>
-      <svg viewBox="0 0 220 66" aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id={`${uid}t`} x1="1" y1="0" x2="0" y2="0">
-            <stop offset="0" stopColor="#bfe3ff" stopOpacity="0.95" />
-            <stop offset="1" stopColor="#4a90d9" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id={`${uid}b`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#ffffff" />
-            <stop offset="1" stopColor="#aebccb" />
-          </linearGradient>
-        </defs>
-        <g className="rocket__trail">
-          <path d="M92 33 C70 20 30 24 0 30 C30 33 30 33 0 36 C30 42 70 46 92 33Z" fill={`url(#${uid}t)`} />
-          <path d="M94 33 C84 25 68 27 54 33 C68 39 84 41 94 33Z" fill="#ffd27a" />
-          <path d="M94 33 C88 29 78 30 70 33 C78 36 88 37 94 33Z" fill="#fff6dc" />
-        </g>
-        <path d="M100 20 L82 2 L120 20Z" fill="#5fa0d6" />
-        <path d="M100 46 L82 64 L120 46Z" fill="#5fa0d6" />
-        <path d="M96 21 H160 Q208 21 218 33 Q208 45 160 45 H96 Q88 33 96 21Z" fill={`url(#${uid}b)`} />
-        <path d="M172 21.5 Q208 21.5 218 33 Q208 44.5 172 44.5Z" fill="#4f93cf" />
-        <rect x="118" y="21" width="9" height="24" fill="#4f93cf" />
-        <path d="M100 25 H165 Q195 25 208 30 Q190 27.5 165 27.5 H100Z" fill="#ffffff" opacity="0.75" />
-        <circle cx="146" cy="33" r="8" fill="#14202e" stroke="#4f93cf" strokeWidth="2.5" />
-      </svg>
-    </span>
-  );
-}
-
 export default function Globe({ photos, paused, onToggle, onOpen, onError, empty = false }: GlobeProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const ballRef = useRef<HTMLUListElement>(null);
-  const rocketRef = useRef<HTMLDivElement>(null);
   const ry = useRef(0);
-  const rt = useRef(0.6); // where the rocket is on its loop
   const speed = useRef(SPIN);
   const stop = useRef(false);
-  const pausedRef = useRef(false);
-  const animation = useRef<ReturnType<typeof visibleAnimation> | null>(null);
+  const visible = useRef(true);
 
   const [R, setR] = useState(240);
   const [active, setActive] = useState<string | null>(null);
@@ -157,16 +105,28 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
   const cardH = R * Math.min(0.42, Math.sqrt((0.5 * 12.57) / (cards.length * 1.35)));
   const activeCard = cards.find((c) => c.key === active);
 
+  const cardsRef = useRef(cards);
+  const Rref = useRef(R);
+  cardsRef.current = cards;
+  Rref.current = R;
+
   stop.current = paused || active !== null;
-  pausedRef.current = paused;
 
   // Size the globe from the space available.
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
     const measure = () => {
-      const { width, height } = el.getBoundingClientRect();
-      setR(Math.round(Math.max(120, Math.min(width * 0.42, height * 0.46, 400))));
+      const { width } = el.getBoundingClientRect();
+      // How much height is left on one screen under the heading, then a little more (the globe may
+      // run slightly past the fold). The globe's real outline is about 1.15 x its radius, so the
+      // stage is made 2.35 x R tall plus some air, and it can never touch the heading.
+      const hero = el.closest<HTMLElement>(".glimpses__hero");
+      const head = hero?.querySelector<HTMLElement>(".glimpses__head");
+      const padTop = hero ? parseFloat(getComputedStyle(hero).paddingTop) || 0 : 0;
+      const headH = head ? head.getBoundingClientRect().height : 0;
+      const fit = (window.innerHeight - padTop - headH - 24) / 2.35;
+      setR(Math.round(Math.max(120, Math.min(width * 0.42, fit * 1.18, 560))));
       // Page width without the scrollbar: lets the section be full width without sideways scrolling.
       el.closest<HTMLElement>(".glimpses")?.style.setProperty(
         "--glimpses-vw",
@@ -183,47 +143,59 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
     };
   }, []);
 
-  // Cache decorative nodes once per layout, then animate only in the visible section.
+  // Only animate while on screen.
   useEffect(() => {
-    const stage = stageRef.current;
-    const ball = ballRef.current;
-    if (!stage || !ball) return;
-    const dots = Array.from(ball.querySelectorAll<HTMLElement>(".globe__ring-dot"));
-    const faces = Array.from(ball.querySelectorAll<HTMLElement>(".globe__card"));
-    let lastShade = -Infinity;
-    const apply = (now: number) => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => {
+      visible.current = e.isIntersecting;
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Spin. Speed eases back up after a pause; stops instantly when a photo is enlarged.
+  useEffect(() => {
+    const apply = () => {
+      const ball = ballRef.current;
+      if (!ball) return;
       ball.style.transform = `rotateX(${TILT}deg) rotateY(${ry.current}deg)`;
-      if (rocketRef.current) rocketRef.current.style.transform = rocketTransform(rt.current, R);
-      dots.forEach(dot => {
-        const az = Number(dot.dataset.az);
-        dot.style.transform = `rotateY(${az}deg) translateZ(${R * RING}px) rotateY(${-(az + ry.current)}deg) rotateX(${-TILT}deg)`;
+      // Depth shading: photos turning away from the viewer get darker (--f: 1 = facing us).
+      const rad = Math.PI / 180;
+      const t = TILT * rad;
+      ball.querySelectorAll<HTMLElement>(".globe__ring-dot").forEach((d) => {
+        const a = Number(d.dataset.az);
+        d.style.transform =
+          `rotateY(${a}deg) translateZ(${Rref.current * RING}px) ` +
+          `rotateY(${-(a + ry.current)}deg) rotateX(${-TILT}deg)`;
       });
-      // Slow depth lighting does not need a filter update on every rotation frame.
-      if (now - lastShade < 50) return;
-      lastShade = now;
-      const rad = Math.PI / 180, tilt = TILT * rad;
-      faces.forEach((face, i) => {
-        const card = cards[i];
-        if (!card) return;
-        const az = (card.az + ry.current) * rad, el = card.el * rad;
-        const z = -Math.sin(el) * Math.sin(tilt) + Math.cos(el) * Math.cos(az) * Math.cos(tilt);
-        face.style.setProperty("--f", Math.max(0, z).toFixed(3));
+      ball.querySelectorAll<HTMLElement>(".globe__card").forEach((el, i) => {
+        const c = cardsRef.current[i];
+        if (!c) return;
+        const az = (c.az + ry.current) * rad;
+        const e = c.el * rad;
+        const z = -Math.sin(e) * Math.sin(t) + Math.cos(e) * Math.cos(az) * Math.cos(t);
+        el.style.setProperty("--f", Math.max(0, z).toFixed(3));
       });
     };
-    apply(0);
+    apply();
     if (reduce) return;
-    const controller = visibleAnimation(stage, (now, dt) => {
-      const target = stop.current ? 0 : SPIN;
-      speed.current += (target - speed.current) * Math.min(1, dt * 4);
-      ry.current = (ry.current + speed.current * dt) % 360;
-      rt.current += dt * ROCKET_SPEED;
-      apply(now);
-    }, { canRun: () => !pausedRef.current });
-    animation.current = controller;
-    return () => { controller.dispose(); animation.current = null; };
-  }, [reduce, cards, R]);
-
-  useEffect(() => { animation.current?.wake(); }, [paused]);
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (visible.current) {
+        const target = stop.current ? 0 : SPIN;
+        speed.current += (target - speed.current) * Math.min(1, dt * 4);
+        ry.current = (ry.current + speed.current * dt) % 360;
+        apply();
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [reduce]);
 
   // Opening the viewer (or pausing) puts any enlarged photo back.
   useEffect(() => {
@@ -257,24 +229,24 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
       <div
         ref={stageRef}
         className="globe"
-        style={{ "--R": `${R}px`, "--card-h": `${cardH}px`, "--persp": `${R * 3.4}px` } as CSSProperties}
+        style={
+          {
+            "--R": `${R}px`,
+            "--card-h": `${cardH}px`,
+            "--persp": `${R * 3.4}px`,
+            flex: "none",
+            height: `${Math.round(R * 2.35 + 24)}px`,
+          } as CSSProperties
+        }
         onClick={onStageClick}
       >
+        {/* the 3D rocket that follows the cursor, drawn behind everything else */}
+        <RocketCanvas paused={paused} />
+
         {/* soft glowing body so it reads as a sphere */}
         <div className="globe__orb" aria-hidden="true" />
 
-        {/* the rocket and the globe share one 3D space, so the rocket really goes behind it */}
         <div className="globe__world">
-          <div
-            ref={rocketRef}
-            className="globe__rocket"
-            aria-hidden="true"
-            style={{ "--rl": `${R * 1.25}px` } as CSSProperties}
-          >
-            <RocketPlane />
-            <RocketPlane cross />
-          </div>
-
           <ul ref={ballRef} className="globe__ball" aria-label="Photographs from Aerovate">
             {/* wireframe: latitude and longitude lines, drawn just inside the photos */}
             <li className="globe__lines" aria-hidden="true">

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent } from "react";
+import type { CSSProperties } from "react";
 import { glimpses, type Glimpse } from "./data";
 import Lightbox from "./Lightbox";
 import Globe from "./Globe";
+import Coverflow from "./Coverflow";
 import "./Glimpses.css";
 
-// Starts the grid's entrance animation the first time it scrolls into view.
+// Starts the heading's animation the first time it scrolls into view.
 function useReveal() {
   const [seen, setSeen] = useState(false);
   const ref = useCallback((node: HTMLElement | null) => {
@@ -28,28 +29,7 @@ function useReveal() {
   return [ref, seen] as const;
 }
 
-// 3D tilt that follows the mouse (mouse only; touch and keyboard are unaffected).
-const tilt = (e: PointerEvent<HTMLLIElement>) => {
-  if (e.pointerType !== "mouse") return;
-  const el = e.currentTarget;
-  const r = el.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width;
-  const y = (e.clientY - r.top) / r.height;
-  el.style.setProperty("--ry", `${(x - 0.5) * 14}deg`);
-  el.style.setProperty("--rx", `${(0.5 - y) * 14}deg`);
-  el.style.setProperty("--gx", `${x * 100}%`);
-  el.style.setProperty("--gy", `${y * 100}%`);
-};
-const untilt = (e: PointerEvent<HTMLLIElement>) => {
-  e.currentTarget.style.setProperty("--rx", "0deg");
-  e.currentTarget.style.setProperty("--ry", "0deg");
-};
-
 const TITLE = "Glimpses";
-
-// Empty glass tiles shown in the browse area while there are no approved photos yet.
-const EMPTY_TILES = [1.5, 0.667, 1.5, 1.333, 1.5, 0.667];
-
 
 // Big heading whose letters ignite one after another when it scrolls into view,
 // then stay white. Afterwards, moving the pointer over a letter makes it flare.
@@ -88,7 +68,6 @@ export function GlimpsesSection() {
   const [viewer, setViewer] = useState<{ photos: Glimpse[]; index: number } | null>(null);
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const [motionOff, setMotionOff] = useState(false);
-  const [gridRef, revealed] = useReveal();
 
   const openerEl = useRef<HTMLElement | null>(null); // the button that opened the viewer
   const openedId = useRef<string | null>(null); // photo that was open when it started
@@ -121,7 +100,7 @@ export function GlimpsesSection() {
     setViewer({ photos, index });
   };
 
-  const openFromGrid = (index: number, el: HTMLElement) => open(visible, index, el);
+  const openFromBrowse = (index: number, el: HTMLElement) => open(visible, index, el);
   const openFromReel = (id: string, el: HTMLElement) =>
     open(glimpses, glimpses.findIndex((p) => p.id === id), el);
 
@@ -136,13 +115,10 @@ export function GlimpsesSection() {
   const closeViewer = useCallback(() => {
     setViewer(null);
     requestAnimationFrame(() => {
-      const same = lastId.current === openedId.current;
-      const target =
-        same && openerEl.current?.isConnected
-          ? openerEl.current
-          : document.getElementById(`glimpse-${lastId.current}`) ||
-            document.getElementById(`globe-${lastId.current}`) ||
-            openerEl.current;
+      // give focus back to the photo that opened the viewer
+      const target = openerEl.current?.isConnected
+        ? openerEl.current
+        : document.getElementById(`globe-${lastId.current}`);
       target?.focus();
     });
   }, []);
@@ -150,7 +126,7 @@ export function GlimpsesSection() {
   // Measure the site's header so the heading never hides underneath it.
   const rootRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    const header = document.querySelector<HTMLElement>("header");
+    const header = document.querySelector<HTMLElement>("header:not(.glimpses__head)");
     if (!header) return;
     const set = () =>
       rootRef.current?.style.setProperty("--site-header-h", `${header.getBoundingClientRect().height}px`);
@@ -166,38 +142,37 @@ export function GlimpsesSection() {
 
   const showReel = reelPhotos.length > 0;
   const reelPaused = motionOff || viewer !== null;
+  const noPhotos = glimpses.length === 0;
 
   return (
     <section ref={rootRef} id="glimpses" tabIndex={-1} className="glimpses" aria-labelledby="glimpses-title">
       <div className="glimpses__hero">
-      <header className="glimpses__head">
-        <GlowTitle id="glimpses-title" />
-        {showReel && (
-          <>
-            {/* Hidden until focused: keeps a keyboard-accessible way to stop the spin */}
-            <button
-              type="button"
-              className="glimpses__chip glimpses__chip--small reel__toggle"
-              aria-pressed={motionOff}
-              onClick={() => setMotionOff((v) => !v)}
-            >
-              {motionOff ? "Start rotating photos" : "Stop rotating photos"}
-            </button>
-            <span className="reel__status" aria-live="polite">
-              {motionOff ? "Rotating photos stopped" : "Rotating photos running"}
-            </span>
-          </>
-        )}
-      </header>
+        <header className="glimpses__head">
+          <GlowTitle id="glimpses-title" />
+        </header>
 
-      <Globe
-        photos={reelPhotos}
-        empty={glimpses.length === 0}
-        paused={reelPaused}
-        onToggle={() => setMotionOff((v) => !v)}
-        onOpen={openFromReel}
-        onError={markFailed}
-      />
+        {/* Always rendered so keyboard users can stop the spin, even though it is invisible until focused */}
+        <button
+          type="button"
+          className="glimpses__chip glimpses__chip--small reel__toggle"
+          aria-pressed={motionOff}
+          onClick={() => setMotionOff((v) => !v)}
+          hidden={!showReel}
+        >
+          {motionOff ? "Start rotating photos" : "Stop rotating photos"}
+        </button>
+        <span className="reel__status" aria-live="polite">
+          {showReel ? (motionOff ? "Rotating photos stopped" : "Rotating photos running") : ""}
+        </span>
+
+        <Globe
+          photos={reelPhotos}
+          empty={noPhotos}
+          paused={reelPaused}
+          onToggle={() => setMotionOff((v) => !v)}
+          onOpen={openFromReel}
+          onError={markFailed}
+        />
       </div>
 
       <div className="glimpses__inner">
@@ -219,77 +194,23 @@ export function GlimpsesSection() {
           </div>
         )}
 
-        <p className="glimpses__count" aria-live="polite" hidden={glimpses.length === 0}>
-          {visible.length} {visible.length === 1 ? "photograph" : "photographs"}
-          {year !== "all" ? ` from ${year}` : ""}
-        </p>
-
-        {glimpses.length === 0 ? (
-          <ul ref={gridRef} className={`glimpses__grid${revealed ? " is-in" : ""}`} aria-hidden="true">
-            {EMPTY_TILES.map((r, i) => (
-              <li
-                key={i}
-                className="glimpses__item glimpses__item--empty"
-                style={{ "--ratio": r, "--i": i } as CSSProperties}
-              />
-            ))}
-          </ul>
-        ) : visible.length === 0 ? (
+        {!noPhotos && visible.length === 0 ? (
           <div className="glimpses__empty">
-            <p>
-              {glimpses.length === 0
-                ? "Photographs will be added here soon."
-                : `No photographs from ${year} yet.`}
-            </p>
-            {glimpses.length > 0 && (
-              <button type="button" className="glimpses__chip" onClick={() => setYear("all")}>
-                Show all years
-              </button>
-            )}
+            <p>{`No photographs from ${year} yet.`}</p>
+            <button type="button" className="glimpses__chip" onClick={() => setYear("all")}>
+              Show all years
+            </button>
           </div>
         ) : (
-          // key={year} remounts the grid so the entrance replays on every filter change
-          <ul key={year} ref={gridRef} className={`glimpses__grid${revealed ? " is-in" : ""}`}>
-            {visible.map((p, i) => (
-              <li
-                key={p.id}
-                className="glimpses__item"
-                style={{ "--ratio": p.width / p.height, "--i": Math.min(i, 12) } as CSSProperties}
-                onPointerMove={tilt}
-                onPointerLeave={untilt}
-              >
-                {failed.has(p.id) ? (
-                  <div className="glimpses__missing" role="img" aria-label={`Photo unavailable: ${p.caption}`}>
-                    <span>Photo unavailable</span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    id={`glimpse-${p.id}`}
-                    className="glimpses__open"
-                    onClick={(e) => openFromGrid(i, e.currentTarget)}
-                    aria-label={`Enlarge: ${p.caption}`}
-                    aria-haspopup="dialog"
-                  >
-                    <img
-                      ref={(el) => {
-                        if (el?.complete && el.naturalWidth) el.classList.add("is-loaded");
-                      }}
-                      src={p.thumb ?? p.src}
-                      alt={p.alt}
-                      width={p.width}
-                      height={p.height}
-                      loading="lazy"
-                      decoding="async"
-                      onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
-                      onError={() => markFailed(p.id)}
-                    />
-                    <span className="glimpses__caption">{p.caption}</span>
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+          // key={year} restarts the coverflow at the middle photo whenever the filter changes
+          <Coverflow
+            key={year}
+            photos={visible}
+            empty={noPhotos}
+            failed={failed}
+            onError={markFailed}
+            onOpen={openFromBrowse}
+          />
         )}
       </div>
 
