@@ -30,7 +30,7 @@
 
 /* ---------- Heading ---------- */
 /* Heading + globe share exactly one screen: the globe takes whatever height the heading leaves */
-.glimpses__hero { display: flex; flex-direction: column; box-sizing: border-box; height: 100vh; height: 100svh; min-height: 520px; padding-top: var(--site-header-h, 0px); }
+.glimpses__hero { display: flex; flex-direction: column; position: relative; box-sizing: border-box; min-height: 100vh; min-height: 100svh; padding-top: var(--site-header-h, 0px); }
 .glimpses__head { flex: none; position: relative; z-index: 1; text-align: center; padding: clamp(0.25rem, 1svh, 0.75rem) 0 0; }
 
 /* ---------- Title: letters ignite in sequence, end up solid white ---------- */
@@ -70,7 +70,7 @@
 }
 
 /* ---------- Globe: photos on a slowly turning sphere ---------- */
-.globe-wrap { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; margin-top: clamp(0.5rem, 2svh, 1.5rem); }
+.globe-wrap { flex: none; display: flex; flex-direction: column; margin-top: clamp(0.5rem, 2svh, 1.5rem); }
 .globe {
   position: relative;
   flex: 1 1 0; min-height: 0;
@@ -84,21 +84,8 @@
 .globe__world { position: absolute; inset: 0; transform-style: preserve-3d; }
 .globe__ball { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; will-change: transform; }
 
-/* Rocket flying in the background, behind the globe */
-.globe__rocket { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; pointer-events: none; will-change: transform; }
-.globe__rocket-plane {
-  position: absolute; left: 0; top: 0;
-  width: var(--rl); height: calc(var(--rl) * 0.3);
-  margin-left: calc(var(--rl) / -2); margin-top: calc(var(--rl) * -0.15);
-  filter: drop-shadow(0 0 10px rgb(150 200 235 / 0.35));
-}
-.globe__rocket-plane.is-cross { transform: rotateX(90deg); }
-.globe__rocket-plane svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.rocket__trail { transform-box: fill-box; transform-origin: right center; animation: rocket-flame 0.22s ease-in-out infinite alternate; }
-@keyframes rocket-flame {
-  from { transform: scaleX(0.75); opacity: 0.75; }
-  to   { transform: scaleX(1.15); opacity: 1; }
-}
+/* The 3D rocket is drawn on this canvas. It covers the whole top area (heading + globe) and sits behind everything. */
+.globe__rocket-canvas { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
 
 /* Sphere body + grid lines */
 .globe__orb {
@@ -178,57 +165,6 @@
 .glimpses__chip[aria-pressed="true"] { background: var(--secondary); color: var(--primary); }
 .glimpses__count { margin: 0 0 1.25rem; font-size: 0.95rem; opacity: 0.8; text-align: left; }
 
-/* ---------- Grid: justified rows, 3D stage ---------- */
-.glimpses__grid { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--gap); perspective: 1400px; }
-.glimpses__grid::after { content: ""; flex-grow: 1000000; }
-
-.glimpses__item {
-  --rx: 0deg; --ry: 0deg; --gx: 50%; --gy: 50%;
-  position: relative; min-width: 0; overflow: hidden; border-radius: 10px;
-  background: rgb(255 255 255 / 0.1);
-  flex-grow: calc(var(--ratio) * 100);
-  flex-basis: calc(var(--ratio) * var(--row-h));
-  box-shadow: 0 18px 32px -22px rgb(0 0 0 / 0.7);
-  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
-  transition: transform 0.25s ease-out, box-shadow 0.3s;
-  will-change: transform;
-  opacity: 0; /* hidden until the entrance runs */
-}
-.glimpses__item::before { content: ""; display: block; padding-top: calc(100% / var(--ratio)); }
-.glimpses__item:hover { box-shadow: 0 32px 50px -24px rgb(0 0 0 / 0.85); z-index: 1; }
-
-.is-in .glimpses__item { animation: tip-up 0.9s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
-@keyframes tip-up {
-  from { opacity: 0; translate: 0 48px; rotate: 1 0 0 -22deg; }
-  to   { opacity: 1; translate: 0 0;    rotate: 1 0 0 0deg; }
-}
-
-.glimpses__open { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: zoom-in; display: block; width: 100%; height: 100%; }
-.glimpses__open img {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-  opacity: 0; transform: scale(1.08);
-  transition: opacity 0.6s ease, transform 0.6s var(--ease);
-}
-.glimpses__open img.is-loaded { opacity: 1; transform: scale(1); }
-.glimpses__item:hover .glimpses__open img.is-loaded { transform: scale(1.06); }
-
-.glimpses__open::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s;
-  background: radial-gradient(circle at var(--gx) var(--gy), rgb(255 255 255 / 0.28), transparent 55%);
-}
-.glimpses__item:hover .glimpses__open::after { opacity: 1; }
-
-.glimpses__caption {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 2rem 0.9rem 0.7rem; text-align: left;
-  color: var(--secondary); font-size: 0.92rem; line-height: 1.3;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.65), transparent);
-  opacity: 0; translate: 0 8px; transition: opacity 0.25s, translate 0.35s var(--ease);
-}
-.glimpses__open:hover .glimpses__caption,
-.glimpses__open:focus-visible .glimpses__caption { opacity: 1; translate: 0 0; }
-@media (hover: none) { .glimpses__caption { opacity: 1; translate: 0 0; } }
-
-.glimpses__missing { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.9rem; opacity: 0.75; }
 .glimpses__empty { padding: 3rem 1rem; text-align: center; border: 2px dashed var(--secondary); border-radius: 12px; }
 .glimpses__empty p { margin: 0 0 1rem; }
 
@@ -277,8 +213,7 @@
 
 /* ---------- Phones ---------- */
 @media (max-width: 640px) {
-  .glimpses { --row-h: 170px; --gap: 8px; --reel-h: 150px; --cut: 12px; }
-  .glimpses__grid { perspective: 900px; }
+  .glimpses { --cut: 12px; }
   .lightbox { grid-template-columns: 1fr; }
   .lightbox__figure { grid-column: 1; padding-bottom: 5.5rem; }
   .lightbox__figure img { max-height: calc(100dvh - 14rem); }
@@ -292,13 +227,11 @@
 /* ---------- Reduced motion: nothing moves ---------- */
 @media (prefers-reduced-motion: reduce) {
   .glimpses__title .glimpses__letter { color: var(--secondary) !important; -webkit-text-stroke: 0 !important; animation: none !important; }
-  .reel__toggle, .reel__status, .globe__ring-dot, .globe__rocket { display: none; }
+  .reel__toggle, .reel__status, .globe__ring-dot, .globe__rocket-canvas { display: none; }
   .globe__face { transition-duration: 0.01s; }
-  .glimpses__item { opacity: 1; transform: none !important; transition: none; }
-  .is-in .glimpses__item, .lightbox, .lightbox__figure img, .lightbox__figure figcaption { animation: none; }
-  .glimpses__open img { opacity: 1; transform: none !important; transition: none; }
-  .glimpses__open::after { display: none; }
-  .glimpses__chip, .lightbox__btn, .glimpses__caption { transition: none; }
+  .lightbox, .lightbox__figure img, .lightbox__figure figcaption { animation: none; }
+  .glimpses__chip, .lightbox__btn { transition: none; }
+  .cf__card, .cf__scene { transition: none; }
 }
 
 .glimpses--empty { padding: 2rem 1rem; text-align: center; opacity: 0.8; }
@@ -329,9 +262,60 @@
 }
 .glimpses > * { position: relative; z-index: 1; }
 
-/* Browse area with no photos yet: quiet empty tiles */
-.glimpses__item--empty { cursor: default; background: rgb(255 255 255 / 0.05); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); transform: none; }
-.glimpses__item--empty:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); }
+/* ---------- Browse: auto-scrolling reel ---------- */
+/* Only the track's transform changes per frame. No filters, reflections or 3D on the cards,
+   so the browser can keep the whole row on the GPU and just slide it. */
+.cf { --cf-ease: cubic-bezier(0.22, 0.8, 0.2, 1); }
+.cf__stage {
+  position: relative; height: calc(var(--cf-h) * 1.2); overflow: hidden;
+  cursor: grab; user-select: none; touch-action: pan-y; outline-offset: 4px;
+  contain: layout paint;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+.cf__stage:active { cursor: grabbing; }
+.cf__track {
+  position: absolute; left: 0; top: 50%; margin: calc(var(--cf-h) / -2) 0 0; padding: 0; list-style: none;
+  display: flex; gap: var(--cf-gap, 18px); width: max-content;
+  transform: translate3d(0, 0, 0); will-change: transform; backface-visibility: hidden;
+}
+.cf__card {
+  flex: none; list-style: none;
+  width: calc(var(--ratio) * var(--cf-h)); height: var(--cf-h);
+  transition: transform 0.3s var(--cf-ease);
+}
+@media (hover: hover) { .cf__card:hover { transform: translateY(-6px); } }
 
-/* Decorative flame work sleeps with the off-screen or paused globe. */
-.globe:not([data-animating="true"]) .rocket__trail { animation-play-state: paused; }
+.cf__btn {
+  --cut: calc(var(--cf-h) * 0.07);
+  position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; cursor: zoom-in; overflow: hidden;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.12) 38%, rgb(255 255 255 / 0.12) 62%, rgb(255 255 255 / 0.7));
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+.cf__img {
+  position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; display: block;
+  background: rgb(255 255 255 / 0.08); color: transparent;
+  clip-path: polygon(calc(var(--cut) - 1.5px) 0, 100% 0, 100% calc(100% - var(--cut) + 1.5px), calc(100% - var(--cut) + 1.5px) 100%, 0 100%, 0 calc(var(--cut) - 1.5px));
+}
+/* caption slides up over the photo on hover / focus */
+.cf__cap {
+  position: absolute; left: 2px; right: 2px; bottom: 2px; padding: 1.6rem 0.8rem 0.6rem; text-align: left;
+  display: flex; flex-direction: column; gap: 0.1rem; color: #fff; font-size: 0.85rem;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.7), transparent);
+  opacity: 0; transform: translateY(8px); transition: opacity 0.25s, transform 0.25s var(--cf-ease);
+}
+.cf__cap em { font-style: normal; font-size: 0.75rem; opacity: 0.8; }
+.cf__btn:hover .cf__cap, .cf__btn:focus-visible .cf__cap { opacity: 1; transform: none; }
+
+.cf__btn--empty { cursor: default; }
+.cf__btn--empty::after {
+  content: ""; position: absolute; inset: 2px; background: rgb(255 255 255 / 0.07);
+  clip-path: polygon(calc(var(--cut) - 1.5px) 0, 100% 0, 100% calc(100% - var(--cut) + 1.5px), calc(100% - var(--cut) + 1.5px) 100%, 0 100%, 0 calc(var(--cut) - 1.5px));
+}
+
+.cf__bar { display: flex; align-items: center; justify-content: center; gap: clamp(0.75rem, 3vw, 1.5rem); margin-top: clamp(0.75rem, 2vw, 1.25rem); }
+.cf__nav { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cf__card, .cf__cap { transition: none; }
+}
