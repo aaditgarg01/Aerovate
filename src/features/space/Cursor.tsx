@@ -67,12 +67,13 @@ export function CursorLayer() {
     let magnetBounds: DOMRect | null = null, stickyBounds: DOMRect | null = null;
     const releaseTimers = new Map<HTMLElement, number>();
     const sparks: Spark[] = [];
-    let dpr = 1;
+    let dpr = 1, trailDirty = false;
 
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(window.innerWidth * dpr);
       canvas.height = Math.round(window.innerHeight * dpr);
+      trailDirty = false;
     };
 
     // What is under the pointer decides the ring's shape and label.
@@ -197,20 +198,24 @@ export function CursorLayer() {
         if (sparks.length > 220) sparks.splice(0, sparks.length - 220);
       }
       lastX = x; lastY = y;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      ctx.globalCompositeOperation = 'lighter';
-      for (let i = sparks.length - 1; i >= 0; i--) {
-        const s = sparks[i];
-        s.x += s.vx * dt; s.y += s.vy * dt; s.vx *= .96 ** dt; s.vy *= .96 ** dt; s.life -= .03 * dt;
-        if (s.life <= 0) { sparks.splice(i, 1); continue; }
-        ctx.globalAlpha = s.life * .8;
-        ctx.fillStyle = s.hue > .7 ? '#ffd29a' : s.hue > .35 ? '#9fe8f7' : '#ffffff';
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
-        ctx.fill();
+      // The rocket/halo need no full-screen canvas repaint when there is no exhaust.
+      if (sparks.length || trailDirty) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const s = sparks[i];
+          s.x += s.vx * dt; s.y += s.vy * dt; s.vx *= .96 ** dt; s.vy *= .96 ** dt; s.life -= .03 * dt;
+          if (s.life <= 0) { sparks.splice(i, 1); continue; }
+          ctx.globalAlpha = s.life * .8;
+          ctx.fillStyle = s.hue > .7 ? '#ffd29a' : s.hue > .35 ? '#9fe8f7' : '#ffffff';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        trailDirty = sparks.length > 0;
       }
-      ctx.globalAlpha = 1;
 
       const settling = Math.abs(tx - rx) > .2 || Math.abs(ty - ry) > .2 || Math.abs(size - desiredSize) > .3 || speed > .05 || thrust > .01 || Math.abs(turn) > .002;
       if (shown && (settling || sparks.length || magnetSettling || moving)) schedule();
@@ -240,7 +245,7 @@ export function CursorLayer() {
       layer.classList.remove('is-visible', 'is-pressed');
       release(magnet); magnet = null; stuck = null;
       cancelAnimationFrame(frame); frame = last = 0;
-      sparks.length = 0; emission = 0; thrust = boost = 0;
+      sparks.length = 0; emission = 0; thrust = boost = 0; trailDirty = false;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
     const onLeave = (event: MouseEvent) => { if (!event.relatedTarget) hide(); };

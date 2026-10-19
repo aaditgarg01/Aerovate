@@ -43,6 +43,7 @@ describe('Rocket cursor lifecycle', () => {
     expect(view.container.querySelector('.cursor-rocket')?.getAttribute('style')).toContain('translate3d(125px,125px,0)');
     step(240);
     expect(frames.size).toBe(0);
+    expect(view.container.querySelector('canvas')!.getContext('2d')!.clearRect).not.toHaveBeenCalled();
     expect(document.documentElement).toHaveClass('cursor-on');
     view.unmount();
     expect(document.documentElement).not.toHaveClass('cursor-on');

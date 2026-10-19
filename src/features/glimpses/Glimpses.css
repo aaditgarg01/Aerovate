@@ -332,3 +332,6 @@
 /* Browse area with no photos yet: quiet empty tiles */
 .glimpses__item--empty { cursor: default; background: rgb(255 255 255 / 0.05); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); transform: none; }
 .glimpses__item--empty:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12); }
+
+/* Decorative flame work sleeps with the off-screen or paused globe. */
+.globe:not([data-animating="true"]) .rocket__trail { animation-play-state: paused; }

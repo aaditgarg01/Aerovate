@@ -101,7 +101,7 @@ export function HeroLaunch() {
       Object.assign(rocket.style, { left: `${rx}px`, top: `${ry}px`, width: `${ROCKET_BOX.w * s0}px`, height: `${ROCKET_BOX.h * s0}px` });
       const [fx, fy] = map(FOCUS.x, FOCUS.y);
       stage.style.transformOrigin = `${fx}px ${fy}px`;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      dpr = Math.min(window.devicePixelRatio || 1, W < 600 ? 1.25 : 1.5);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       hero.style.setProperty('--hero-stick', `${Math.min(0, window.innerHeight - hero.offsetHeight)}px`);
       trackLen = Math.max(1, track.offsetHeight - window.innerHeight);
@@ -109,7 +109,7 @@ export function HeroLaunch() {
     };
 
     const particles: Particle[] = [];
-    let p = 0, smooth = 0, last = 0, frame = 0, visible = true, lift = 0, prevLift = 0;
+    let p = 0, smooth = 0, last = 0, frame = 0, visible = true, lift = 0, lastFxLift = 0, lastFx = 0, fxElapsed = 0;
     // Pointer parallax (fine pointers only): -1..1 across the hero, eased.
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     let mx = 0, my = 0, smx = 0, smy = 0, px = -9999, py = -9999;
@@ -175,7 +175,6 @@ export function HeroLaunch() {
       // rocket must leave the top of the screen by the end, whatever the camera is doing
       const [, rTop] = map(ROCKET_BOX.x, ROCKET_BOX.y);
       const exitY = (oy - (oy + tilt) / scale) - rTop - ROCKET_BOX.h * s0 * 1.4;
-      prevLift = lift;
       lift = exitY * liftT ** 1.7;
       const rumble = thrust > 0 && liftT === 0 ? Math.sin(now * .21) * .8 : 0;
       const sway = Math.sin(liftT * 5.5) * 6 * s0 * liftT;
@@ -203,88 +202,97 @@ export function HeroLaunch() {
       hudPhase.textContent = q < .14 ? 'Systems check' : q < .2 ? 'Countdown' : q < .32 ? 'Ignition' : q < .45 ? 'Liftoff' : q < .75 ? 'Ascent' : 'Into the night';
       hudBar.style.transform = `scaleX(${q})`;
 
-      // 8 · Flame, pad glow and smoke on the canvas (world = stage pixels)
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      if (ready || particles.length) {
-        const [nx, ny0] = map(NOZZLE.x, NOZZLE.y);
-        const ny = ny0 + lift;
-        const [, pad] = map(0, PAD_Y);
-        const speed = Math.abs(lift - prevLift) / Math.max(dt, .5);
-        const nearPad = clamp(1 - (ny0 - ny) / (H * .35));
-        const fire = thrust * (ready ? 1 : 0);
+      // Keep camera/text motion fluid; smoke/flame rasterization needs only 30 Hz.
+      fxElapsed += dt;
+      if (!lastFx || now - lastFx >= 1000 / 30 - .1) {
+        const dt = fxElapsed;
+        fxElapsed = 0;
+        lastFx = now;
 
-        // smoke: billows along the ground at ignition, then a trail behind the rocket
-        if (fire > 0 && dt > 0 && q < .97) {
-          const groundRate = fire * nearPad * 3.2 * dt;
-          for (let i = 0; i < groundRate; i++) {
-            const dir = Math.random() < .5 ? -1 : 1;
-            particles.push({ x: nx + dir * Math.random() * 14 * s0, y: pad - Math.random() * 46 * s0, vx: dir * (1 + Math.random() * 3.6) * s0 * 1.4, vy: -(.15 + Math.random() * .55) * s0, r: (14 + Math.random() * 18) * s0, gr: (.9 + Math.random() * 1.1) * s0, a: .5 + Math.random() * .3, da: .0045 + Math.random() * .004 });
-          }
-          const trailRate = fire * (1 - nearPad * .7) * 2.2 * dt * (liftT > 0 ? 1 : 0);
-          for (let i = 0; i < trailRate; i++) {
-            particles.push({ x: nx + (Math.random() - .5) * 8 * s0, y: ny + 30 * s0 + Math.random() * speed, vx: (Math.random() - .5) * .8 * s0, vy: (.2 + Math.random() * .6) * s0, r: (6 + Math.random() * 8) * s0, gr: (.35 + Math.random() * .5) * s0, a: .42, da: .006 + Math.random() * .005 });
-          }
-        }
-        if (particles.length > 340) particles.splice(0, particles.length - 340);
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const m = particles[i];
-          m.x += m.vx * dt; m.y += m.vy * dt; m.vx *= .985 ** dt; m.vy *= .99 ** dt; m.r += m.gr * dt; m.a -= m.da * dt;
-          if (m.a <= 0) particles.splice(i, 1);
-        }
-        // draw smoke: cool grey-blue, warmed by the flame when fresh
-        for (const m of particles) {
-          ctx.globalAlpha = Math.min(.85, m.a) * (1 - seg(.9, 1) * .6);
-          ctx.drawImage(sprite, m.x - m.r, m.y - m.r, m.r * 2, m.r * 2);
-        }
-        ctx.globalCompositeOperation = 'source-atop';
-        ctx.globalAlpha = .5;
-        ctx.fillStyle = '#7d8aa0';
-        ctx.fillRect(0, 0, W, H);
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        if (ready || particles.length) {
+          const [nx, ny0] = map(NOZZLE.x, NOZZLE.y);
+          const ny = ny0 + lift;
+          const [, pad] = map(0, PAD_Y);
+          const speed = Math.abs(lift - lastFxLift) / Math.max(dt, .5);
+          const nearPad = clamp(1 - (ny0 - ny) / (H * .35));
+          const fire = thrust * (ready ? 1 : 0);
 
-        if (fire > 0) {
-          ctx.globalCompositeOperation = 'lighter';
-          // pad glow lights the smoke and ground while the rocket is close
-          const glowR = (120 + 160 * fire) * s0 * (0.5 + nearPad * .5);
-          const g = ctx.createRadialGradient(nx, Math.min(ny + 40 * s0, pad), 0, nx, Math.min(ny + 40 * s0, pad), glowR);
-          g.addColorStop(0, `rgba(255,190,110,${.55 * fire * (0.35 + nearPad * .65)})`);
-          g.addColorStop(.4, `rgba(255,120,50,${.22 * fire * (0.3 + nearPad * .7)})`);
-          g.addColorStop(1, 'rgba(255,90,30,0)');
-          ctx.globalAlpha = 1;
-          ctx.fillStyle = g;
-          ctx.fillRect(nx - glowR, ny - glowR, glowR * 2, glowR * 2 + 80 * s0);
-          // flame: layered flickering plume
-          const flicker = .86 + Math.random() * .22;
-          const len = (26 + 70 * fire + Math.min(160, speed * 2.2)) * s0 * flicker;
-          const wid = 7.5 * s0 * (0.7 + fire * .3);
-          for (const [k, col] of [[1.9, 'rgba(255,110,40,'], [1.3, 'rgba(255,190,90,'], [.7, 'rgba(255,248,225,']] as const) {
-            const L = len * (k > 1.5 ? 1.1 : k > 1 ? .85 : .55);
-            const fg = ctx.createLinearGradient(nx, ny, nx, ny + L);
-            fg.addColorStop(0, `${col}${.95 * fire})`);
-            fg.addColorStop(1, `${col}0)`);
-            ctx.fillStyle = fg;
-            ctx.beginPath();
-            ctx.moveTo(nx - wid * k * .5, ny);
-            ctx.quadraticCurveTo(nx - wid * k * .75, ny + L * .35, nx, ny + L);
-            ctx.quadraticCurveTo(nx + wid * k * .75, ny + L * .35, nx + wid * k * .5, ny);
-            ctx.closePath();
-            ctx.fill();
+          // smoke: billows along the ground at ignition, then a trail behind the rocket
+          if (fire > 0 && dt > 0 && q < .74) {
+            const groundRate = fire * nearPad * 3.2 * dt;
+            for (let i = 0; i < groundRate; i++) {
+              const dir = Math.random() < .5 ? -1 : 1;
+              particles.push({ x: nx + dir * Math.random() * 14 * s0, y: pad - Math.random() * 46 * s0, vx: dir * (1 + Math.random() * 3.6) * s0 * 1.4, vy: -(.15 + Math.random() * .55) * s0, r: (14 + Math.random() * 18) * s0, gr: (.9 + Math.random() * 1.1) * s0, a: .5 + Math.random() * .3, da: .0045 + Math.random() * .004 });
+            }
+            const trailRate = fire * (1 - nearPad * .7) * 2.2 * dt * (liftT > 0 ? 1 : 0);
+            for (let i = 0; i < trailRate; i++) {
+              particles.push({ x: nx + (Math.random() - .5) * 8 * s0, y: ny + 30 * s0 + Math.random() * speed, vx: (Math.random() - .5) * .8 * s0, vy: (.2 + Math.random() * .6) * s0, r: (6 + Math.random() * 8) * s0, gr: (.35 + Math.random() * .5) * s0, a: .42, da: .006 + Math.random() * .005 });
+            }
           }
+          const particleLimit = W < 600 ? 120 : 220;
+          if (particles.length > particleLimit) particles.splice(0, particles.length - particleLimit);
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const m = particles[i];
+            m.x += m.vx * dt; m.y += m.vy * dt; m.vx *= .985 ** dt; m.vy *= .99 ** dt; m.r += m.gr * dt; m.a -= m.da * dt;
+            if (m.a <= 0) particles.splice(i, 1);
+          }
+          // draw smoke: cool grey-blue, warmed by the flame when fresh
+          for (const m of particles) {
+            ctx.globalAlpha = Math.min(.85, m.a) * (1 - seg(.9, 1) * .6);
+            ctx.drawImage(sprite, m.x - m.r, m.y - m.r, m.r * 2, m.r * 2);
+          }
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.globalAlpha = .5;
+          ctx.fillStyle = '#7d8aa0';
+          ctx.fillRect(0, 0, W, H);
           ctx.globalCompositeOperation = 'source-over';
+
+          if (fire > 0) {
+            ctx.globalCompositeOperation = 'lighter';
+            // pad glow lights the smoke and ground while the rocket is close
+            const glowR = (120 + 160 * fire) * s0 * (0.5 + nearPad * .5);
+            const g = ctx.createRadialGradient(nx, Math.min(ny + 40 * s0, pad), 0, nx, Math.min(ny + 40 * s0, pad), glowR);
+            g.addColorStop(0, `rgba(255,190,110,${.55 * fire * (0.35 + nearPad * .65)})`);
+            g.addColorStop(.4, `rgba(255,120,50,${.22 * fire * (0.3 + nearPad * .7)})`);
+            g.addColorStop(1, 'rgba(255,90,30,0)');
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = g;
+            ctx.fillRect(nx - glowR, ny - glowR, glowR * 2, glowR * 2 + 80 * s0);
+            // flame: layered flickering plume
+            const flicker = .86 + Math.random() * .22;
+            const len = (26 + 70 * fire + Math.min(160, speed * 2.2)) * s0 * flicker;
+            const wid = 7.5 * s0 * (0.7 + fire * .3);
+            for (const [k, col] of [[1.9, 'rgba(255,110,40,'], [1.3, 'rgba(255,190,90,'], [.7, 'rgba(255,248,225,']] as const) {
+              const L = len * (k > 1.5 ? 1.1 : k > 1 ? .85 : .55);
+              const fg = ctx.createLinearGradient(nx, ny, nx, ny + L);
+              fg.addColorStop(0, `${col}${.95 * fire})`);
+              fg.addColorStop(1, `${col}0)`);
+              ctx.fillStyle = fg;
+              ctx.beginPath();
+              ctx.moveTo(nx - wid * k * .5, ny);
+              ctx.quadraticCurveTo(nx - wid * k * .75, ny + L * .35, nx, ny + L);
+              ctx.quadraticCurveTo(nx + wid * k * .75, ny + L * .35, nx + wid * k * .5, ny);
+              ctx.closePath();
+              ctx.fill();
+            }
+            ctx.globalCompositeOperation = 'source-over';
+          }
+          ctx.globalAlpha = 1;
         }
-        ctx.globalAlpha = 1;
+        lastFxLift = lift;
       }
 
       hero.toggleAttribute('data-covered', p >= 1 && track.getBoundingClientRect().bottom <= 0);
       // Keep animating while visible and something is moving (flame flicker, smoke, easing)
       if (visible && (burning() || particles.length || smooth !== p || Math.abs(mx - smx) > .002 || Math.abs(my - smy) > .002)) schedule();
     };
-    const burning = () => smooth > .2 && smooth < .99;
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(render); };
+    const burning = () => smooth > .2 && smooth < .74;
+    const schedule = () => { if (!frame && visible && !document.hidden) frame = requestAnimationFrame(render); };
     const onResize = () => { measure(); schedule(); };
     const onPointer = (event: PointerEvent) => {
-      if (!finePointer || event.pointerType === 'touch') return;
+      if (!visible || document.hidden || !finePointer || event.pointerType === 'touch') return;
       const r = hero.getBoundingClientRect();
       if (event.clientY > r.bottom) return;
       mx = (event.clientX / window.innerWidth - .5) * 2;
@@ -303,7 +311,16 @@ export function HeroLaunch() {
     document.documentElement.addEventListener('mouseleave', onPointerLeave);
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
     ro?.observe(hero);
-    const io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) schedule(); });
+    const syncVisibility = () => {
+      cancelAnimationFrame(frame); frame = last = lastFx = fxElapsed = 0;
+      if (visible && !document.hidden) schedule();
+    };
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      hero.toggleAttribute('data-covered', !visible && entry.boundingClientRect.bottom <= 0);
+      syncVisibility();
+    });
+    document.addEventListener('visibilitychange', syncVisibility);
     io.observe(track);
 
     return () => {
@@ -315,6 +332,7 @@ export function HeroLaunch() {
       if (inner) inner.style.transform = '';
       ro?.disconnect();
       io.disconnect();
+      document.removeEventListener('visibilitychange', syncVisibility);
       hero.classList.remove('launch-motion', 'launch-ready');
       hero.removeAttribute('data-covered');
       hero.style.removeProperty('--hero-stick');
