@@ -199,3 +199,4 @@
 @media (max-width: 860px) {
   .tt-photo { transform: none; margin-top: 32px; }
 }
+.tt-hero:not([data-animating="true"]) .tt-spin { animation-play-state: paused; }

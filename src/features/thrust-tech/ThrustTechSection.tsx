@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import "./thrust-tech.css";
 import { replayHeroOnEntry } from "./replayHeroOnEntry";
+import { visibleAnimation } from "../space/visibleAnimation";
 
 type Props = {
   /** Anchor id used by the navbar link (#thrust-tech). Remove it here if a parent already sets it. */
@@ -42,10 +43,8 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
     let S: Star[] = [];
     let W = 0;
     let H = 0;
-    let vis = true;
-    let raf = 0;
     const size = () => {
-      const d = Math.min(window.devicePixelRatio || 1, 2);
+      const d = Math.min(window.devicePixelRatio || 1, 1.5);
       W = c.clientWidth;
       H = c.clientHeight;
       c.width = W * d;
@@ -75,66 +74,33 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
         x.fill();
       }
     };
-    const loop = (t: number) => {
-      draw(t);
-      if (vis && !rm) raf = requestAnimationFrame(loop);
-    };
     size();
     draw(0);
-    if (!rm) raf = requestAnimationFrame(loop);
+    const tp0 = root.querySelector<SVGPathElement>("#tt-tpath")!;
+    const td = root.querySelector<HTMLElement>("#tt-tdot")!;
+    const trailLength = tp0.getTotalLength();
+    let elapsed = 0;
+    const animation = rm ? null : visibleAnimation(hero, (_now, seconds) => {
+      elapsed += seconds * 1000;
+      draw(elapsed);
+      if (elapsed < 3800) return;
+      const k = ((elapsed - 3800) % 9000) / 9000;
+      const point = tp0.getPointAtLength(k * trailLength);
+      td.style.left = point.x + "%";
+      td.style.top = point.y + "%";
+      td.style.opacity = String(k < .08 ? k / .08 : k > .85 ? (1 - k) / .15 : 1);
+    }, { fps: 30 });
     let rz = 0;
     const onResize = () => {
       window.clearTimeout(rz);
-      rz = window.setTimeout(() => {
-        size();
-        draw(0);
-      }, 150);
+      rz = window.setTimeout(() => { size(); draw(elapsed); }, 150);
     };
     window.addEventListener("resize", onResize);
-    const visObs = new IntersectionObserver((e) => {
-      vis = e[0].isIntersecting;
-      if (vis && !rm) {
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(loop);
-      }
-    });
-    visObs.observe(hero);
     cleanups.push(() => {
-      cancelAnimationFrame(raf);
+      animation?.dispose();
       window.clearTimeout(rz);
       window.removeEventListener("resize", onResize);
-      visObs.disconnect();
     });
-
-    /* launch point travelling slowly up the trail */
-    const tp0 = root.querySelector<SVGPathElement>("#tt-tpath")!;
-    const td = root.querySelector<HTMLElement>("#tt-tdot")!;
-    if (!rm) {
-      const L0 = tp0.getTotalLength();
-      let st: number | null = null;
-      let tr = 0;
-      let alive = true;
-      const f = (t: number) => {
-        if (!alive) return;
-        if (st === null) st = t;
-        if (vis) {
-          const k = ((t - st) % 9000) / 9000;
-          const p = tp0.getPointAtLength(k * L0);
-          td.style.left = p.x + "%";
-          td.style.top = p.y + "%";
-          td.style.opacity = String(k < 0.08 ? k / 0.08 : k > 0.85 ? (1 - k) / 0.15 : 1);
-        }
-        tr = requestAnimationFrame(f);
-      };
-      const to = window.setTimeout(() => {
-        tr = requestAnimationFrame(f);
-      }, 3800);
-      cleanups.push(() => {
-        alive = false;
-        window.clearTimeout(to);
-        cancelAnimationFrame(tr);
-      });
-    }
 
     /* cursor light: follows the pointer anywhere over the hero, eases smoothly, fades with distance (desktop only) */
     const em = root.querySelector<HTMLElement>("#tt-emblem")!;
@@ -148,11 +114,12 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
       let cur = 0;
       let run = false;
       let fr = 0;
+      let lightBounds = lt.getBoundingClientRect();
       const frame = () => {
         cx += (tx - cx) * 0.14;
         cy += (ty - cy) * 0.14;
         cur += (tgt - cur) * 0.1;
-        const r = lt.getBoundingClientRect();
+        const r = lightBounds;
         const mx = Math.max(-15, Math.min(115, ((cx - r.left) / r.width) * 100));
         const my = Math.max(-15, Math.min(115, ((cy - r.top) / r.height) * 100));
         em.style.setProperty("--mx", mx.toFixed(1) + "%");
@@ -172,6 +139,7 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
       };
       const onMove = (e: PointerEvent) => {
         const r = em.getBoundingClientRect();
+        lightBounds = lt.getBoundingClientRect();
         const ex = r.left + r.width / 2;
         const ey = r.top + r.height / 2;
         const d = Math.hypot(e.clientX - ex, e.clientY - ey) / (r.width * 0.9);
@@ -249,17 +217,18 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
       curP += (target - curP) * (rm ? 1 : 0.14); // light easing so it feels smooth
       if (Math.abs(target - curP) < 0.001) curP = target;
       render(curP);
-      // keep running while the section is near the screen or still easing; otherwise sleep
-      trajRaf = trajVis || curP !== target ? requestAnimationFrame(tick) : 0;
+      // A stationary trajectory needs no frames; the next scroll wakes it.
+      trajRaf = curP !== target && trajVis && !document.hidden ? requestAnimationFrame(tick) : 0;
     };
     const startLoop = () => {
-      if (!trajRaf) trajRaf = requestAnimationFrame(tick);
+      if (!trajRaf && trajVis && !rm && !document.hidden) trajRaf = requestAnimationFrame(tick);
     };
-    // reads the position every frame, so it works with any scroll container or smooth-scroll library
+    // Scroll wakes the easing only while the trajectory is near the viewport.
     const tio = new IntersectionObserver(
       (e) => {
         trajVis = e[0].isIntersecting;
         if (trajVis) startLoop();
+        else { cancelAnimationFrame(trajRaf); trajRaf = 0; }
       },
       { rootMargin: "200px 0px" }
     );
@@ -268,13 +237,21 @@ export function ThrustTechSection({ id = "thrust-tech" }: Props) {
       layout();
       startLoop();
     };
+    const onVisibility = () => {
+      cancelAnimationFrame(trajRaf); trajRaf = 0;
+      if (!document.hidden) startLoop();
+    };
     layout();
     render(rm ? 1 : 0);
     window.addEventListener("resize", onResizeTraj);
+    window.addEventListener("scroll", startLoop, { passive: true });
+    document.addEventListener("visibilitychange", onVisibility);
     cleanups.push(() => {
       cancelAnimationFrame(trajRaf);
       tio.disconnect();
       window.removeEventListener("resize", onResizeTraj);
+      window.removeEventListener("scroll", startLoop);
+      document.removeEventListener("visibilitychange", onVisibility);
     });
 
     return () => cleanups.forEach((fn) => fn());

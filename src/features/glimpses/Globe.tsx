@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import type { Glimpse } from "./data";
+import { visibleAnimation } from "../space/visibleAnimation";
 
 const TILT = -10; // degrees: look at the globe from slightly above
 const SPIN = 14; // degrees per second
@@ -137,7 +138,7 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
   const speed = useRef(SPIN);
   const stop = useRef(false);
   const pausedRef = useRef(false);
-  const visible = useRef(true);
+  const animation = useRef<ReturnType<typeof visibleAnimation> | null>(null);
 
   const [R, setR] = useState(240);
   const [active, setActive] = useState<string | null>(null);
@@ -155,11 +156,6 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
   // card size follows the count so roughly half the surface is covered at any number of photos
   const cardH = R * Math.min(0.42, Math.sqrt((0.5 * 12.57) / (cards.length * 1.35)));
   const activeCard = cards.find((c) => c.key === active);
-
-  const cardsRef = useRef(cards);
-  const Rref = useRef(R);
-  cardsRef.current = cards;
-  Rref.current = R;
 
   stop.current = paused || active !== null;
   pausedRef.current = paused;
@@ -187,63 +183,47 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
     };
   }, []);
 
-  // Only animate while on screen.
+  // Cache decorative nodes once per layout, then animate only in the visible section.
   useEffect(() => {
-    const el = stageRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => {
-      visible.current = e.isIntersecting;
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  // Spin. Speed eases back up after a pause; stops instantly when a photo is enlarged.
-  useEffect(() => {
-    const apply = () => {
-      const ball = ballRef.current;
-      if (!ball) return;
+    const stage = stageRef.current;
+    const ball = ballRef.current;
+    if (!stage || !ball) return;
+    const dots = Array.from(ball.querySelectorAll<HTMLElement>(".globe__ring-dot"));
+    const faces = Array.from(ball.querySelectorAll<HTMLElement>(".globe__card"));
+    let lastShade = -Infinity;
+    const apply = (now: number) => {
       ball.style.transform = `rotateX(${TILT}deg) rotateY(${ry.current}deg)`;
-      if (rocketRef.current) {
-        rocketRef.current.style.transform = rocketTransform(rt.current, Rref.current);
-      }
-      // Depth shading: photos turning away from the viewer get darker (--f: 1 = facing us).
-      const rad = Math.PI / 180;
-      const t = TILT * rad;
-      ball.querySelectorAll<HTMLElement>(".globe__ring-dot").forEach((d) => {
-        const a = Number(d.dataset.az);
-        d.style.transform =
-          `rotateY(${a}deg) translateZ(${Rref.current * RING}px) ` +
-          `rotateY(${-(a + ry.current)}deg) rotateX(${-TILT}deg)`;
+      if (rocketRef.current) rocketRef.current.style.transform = rocketTransform(rt.current, R);
+      dots.forEach(dot => {
+        const az = Number(dot.dataset.az);
+        dot.style.transform = `rotateY(${az}deg) translateZ(${R * RING}px) rotateY(${-(az + ry.current)}deg) rotateX(${-TILT}deg)`;
       });
-      ball.querySelectorAll<HTMLElement>(".globe__card").forEach((el, i) => {
-        const c = cardsRef.current[i];
-        if (!c) return;
-        const az = (c.az + ry.current) * rad;
-        const e = c.el * rad;
-        const z = -Math.sin(e) * Math.sin(t) + Math.cos(e) * Math.cos(az) * Math.cos(t);
-        el.style.setProperty("--f", Math.max(0, z).toFixed(3));
+      // Slow depth lighting does not need a filter update on every rotation frame.
+      if (now - lastShade < 50) return;
+      lastShade = now;
+      const rad = Math.PI / 180, tilt = TILT * rad;
+      faces.forEach((face, i) => {
+        const card = cards[i];
+        if (!card) return;
+        const az = (card.az + ry.current) * rad, el = card.el * rad;
+        const z = -Math.sin(el) * Math.sin(tilt) + Math.cos(el) * Math.cos(az) * Math.cos(tilt);
+        face.style.setProperty("--f", Math.max(0, z).toFixed(3));
       });
     };
-    apply();
+    apply(0);
     if (reduce) return;
-    let raf = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      if (visible.current) {
-        const target = stop.current ? 0 : SPIN;
-        speed.current += (target - speed.current) * Math.min(1, dt * 4);
-        ry.current = (ry.current + speed.current * dt) % 360;
-        if (!pausedRef.current) rt.current += dt * ROCKET_SPEED; // the rocket keeps flying while you hover a photo
-        apply();
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [reduce]);
+    const controller = visibleAnimation(stage, (now, dt) => {
+      const target = stop.current ? 0 : SPIN;
+      speed.current += (target - speed.current) * Math.min(1, dt * 4);
+      ry.current = (ry.current + speed.current * dt) % 360;
+      rt.current += dt * ROCKET_SPEED;
+      apply(now);
+    }, { canRun: () => !pausedRef.current });
+    animation.current = controller;
+    return () => { controller.dispose(); animation.current = null; };
+  }, [reduce, cards, R]);
+
+  useEffect(() => { animation.current?.wake(); }, [paused]);
 
   // Opening the viewer (or pausing) puts any enlarged photo back.
   useEffect(() => {

@@ -46,6 +46,7 @@ npm run preview    # serve the production build
 - Rocket cursor with smooth steering, flame and exhaust, magnetic controls, hover labels and card spotlights on supported desktop pointers.
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
+- Native scrolling without wheel interception; offscreen/background animation suspension, capped decorative drawing and cached gallery/marquee measurements.
 - Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
 - Twilight blossom footer matching the supplied design, with live contact text, social icons, GitHub/LinkedIn contributor links and an large interactive AEROVATE wordmark below the footer content.
 - Automated frontend checks in GitHub Actions and deployment through Vercel.
@@ -57,7 +58,7 @@ npm run preview    # serve the production build
 | Foundation, navigation and footer | Implemented and integrated. |
 | Landing and event description | Sunset hero implemented; final programme, dates and venue are pending. |
 | Rocket | The hero rocket uses image assets; the SVG fallback and component contract remain available for future 3D model integration. A 3D model is not yet mounted. |
-| Scroll and cursor | Implemented, with frame-rate-independent cursor smoothing and reduced-motion fallbacks. |
+| Scroll and cursor | Native scrolling, frame-rate-independent cursor smoothing and reduced-motion fallbacks; decorative loops pause offscreen and in background tabs. |
 | Thrust Tech | Implemented, including repeatable logo entrance and collaboration animation. |
 | Past-year POCs | Integrated into the main page; approved historical names and details are pending. |
 | Glimpses | Gallery interface implemented; approved historical photographs and captions are pending. |

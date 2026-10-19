@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { clampProgress } from '../rocket/types';
-import { footerRevealProgress, motionAllowed, smoothWheel } from './motion';
+import { footerRevealProgress, motionAllowed } from './motion';
 import './space.css';
 
 /** Elements that animate in the first time they enter the viewport. */
@@ -9,7 +9,7 @@ const REVEAL_SELECTOR = 'main .section, .footer-top, .footer-wordmark, .footer-g
 
 /**
  * Member 4: page-wide scroll motion. The hero launch lives in HeroLaunch.
- * - Inertia wheel scrolling on desktop.
+ * - Native wheel/trackpad scrolling without JavaScript interception.
  * - Trajectory bar (`--page-progress`) along the top edge.
  * - Velocity marquee: speed and skew follow how fast the visitor scrolls.
  * - Sections: masked word-by-word headings and staggered content, once, on entry.
@@ -24,58 +24,73 @@ export function ScrollMotion() {
     if (!motionAllowed()) return;
     const root = document.documentElement;
     root.classList.add('motion-ready');
-    const stopWheel = smoothWheel();
 
     const rows = Array.from(document.querySelectorAll<HTMLElement>('.marquee-row'));
     const wordmark = document.querySelector<HTMLElement>('.footer-wordmark');
     const marquee = document.querySelector<HTMLElement>('.marquee');
     let frame = 0, lastY = window.scrollY, velocity = 0, offset = 0, last = 0, marqueeVisible = false, pace = 1;
+    let dirty = true;
+    let rowWidths: number[] = [];
+    const measureRows = () => { rowWidths = rows.map(row => row.scrollWidth / 2 || 1); };
 
     const update = (now: number) => {
       frame = 0;
+      if (document.hidden) { last = 0; return; }
       const dt = Math.min(3, last ? (now - last) / 16.67 : 1);
       last = now;
-      const y = window.scrollY;
-      const scrollable = root.scrollHeight - window.innerHeight;
-      bar.current?.style.setProperty('--page-progress', String(scrollable > 0 ? clampProgress(y / scrollable) : 0));
+      // Read layout before writing styles, and only when scrolling/layout changed.
+      if (dirty) {
+        const y = window.scrollY;
+        const scrollable = root.scrollHeight - window.innerHeight;
+        const rect = wordmark?.getBoundingClientRect();
+        velocity += (y - lastY - velocity) * .18;
+        lastY = y;
+        dirty = false;
+        bar.current?.style.setProperty('--page-progress', String(scrollable > 0 ? clampProgress(y / scrollable) : 0));
+        if (wordmark && rect) wordmark.style.setProperty('--fp', String(footerRevealProgress(rect.top, rect.height, window.innerHeight)));
+      } else velocity *= .82;
 
-      // marquee: drift + scroll velocity (direction-aware), skewed by speed
-      const delta = y - lastY;
-      lastY = y;
-      velocity += (delta - velocity) * .18;
-      // hovering the band slows it right down so the words can be read (and lit by the cursor)
-      pace += ((marquee?.matches(':hover') ? .12 : 1) - pace) * Math.min(1, .06 * dt);
-      offset += (.6 + Math.abs(velocity) * .55) * pace * dt * (velocity < -.5 ? -1 : 1);
-      const skew = Math.max(-9, Math.min(9, velocity * -.35));
-      rows.forEach((row, i) => {
-        const width = row.scrollWidth / 2 || 1;
-        const dir = i % 2 ? 1 : -1;
-        const x = ((offset * dir) % width + width) % width;
-        row.style.transform = `translate3d(${-x}px,0,0) skewX(${skew}deg)`;
-      });
-
-      // footer wordmark: letters rise from below as the footer comes up
-      if (wordmark) {
-        const r = wordmark.getBoundingClientRect();
-        wordmark.style.setProperty('--fp', String(footerRevealProgress(r.top, r.height, window.innerHeight)));
-      }
-      if (Math.abs(velocity) > .05 || marqueeVisible) frame = requestAnimationFrame(update);
+      if (marqueeVisible) {
+        pace += ((marquee?.matches(':hover') ? .12 : 1) - pace) * Math.min(1, .06 * dt);
+        offset += (.6 + Math.abs(velocity) * .55) * pace * dt * (velocity < -.5 ? -1 : 1);
+        const skew = Math.max(-9, Math.min(9, velocity * -.35));
+        rows.forEach((row, i) => {
+          const width = rowWidths[i] || 1;
+          const x = ((offset * (i % 2 ? 1 : -1)) % width + width) % width;
+          row.style.transform = `translate3d(${-x}px,0,0) skewX(${skew}deg)`;
+        });
+        schedule();
+      } else last = 0;
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const schedule = () => { if (!frame && !document.hidden) frame = requestAnimationFrame(update); };
+    const onScroll = () => { dirty = true; schedule(); };
+    const onResize = () => { measureRows(); onScroll(); };
+    const onVisibility = () => {
+      cancelAnimationFrame(frame); frame = last = 0;
+      if (!document.hidden) onScroll();
+    };
+    measureRows();
     schedule();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-
-    // Pause the always-on marquee loop while it is off-screen.
-    const mio = marquee ? new IntersectionObserver(([e]) => { marqueeVisible = e.isIntersecting; schedule(); }) : null;
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    document.addEventListener('visibilitychange', onVisibility);
+    const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
+    if (marquee) resizeObserver?.observe(marquee);
+    const mio = marquee ? new IntersectionObserver(([entry]) => {
+      marqueeVisible = entry.isIntersecting;
+      marquee.dataset.animating = String(marqueeVisible && !document.hidden);
+      if (!marqueeVisible) { cancelAnimationFrame(frame); frame = last = 0; }
+      onScroll();
+    }) : null;
     if (marquee) mio?.observe(marquee);
 
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibility);
+      resizeObserver?.disconnect();
       mio?.disconnect();
-      stopWheel();
       root.classList.remove('motion-ready');
     };
   }, [pathname]);
