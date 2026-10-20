@@ -45,7 +45,7 @@ describe('Shared foundation', () => {
     renderAt('/pocs');
     await waitFor(() => expect(document.getElementById('pocs')).toHaveFocus());
     expect(screen.getByRole('heading', { level: 1, name: 'Ideas take flight.' })).toBeInTheDocument();
-    expect(screen.getByText('Our story, through its people.')).toBeInTheDocument();
+    expect(within(document.getElementById('pocs')!).getByRole('heading', { name: 'Every launch has a team.' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'astronomy@vit.ac.in' })).toHaveAttribute('href', 'mailto:astronomy@vit.ac.in');
     expect(screen.getByRole('link', { name: /Instagram/ })).toHaveAttribute('rel', 'noopener noreferrer');
   });
