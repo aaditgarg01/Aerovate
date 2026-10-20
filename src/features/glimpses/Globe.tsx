@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import type { Glimpse } from "./data";
 import RocketCanvas from "./RocketCanvas";
+import { visibleAnimation } from "../space/visibleAnimation";
 
 const TILT = -10; // degrees: look at the globe from slightly above
 const SPIN = 14; // degrees per second
@@ -86,7 +87,7 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
   const ry = useRef(0);
   const speed = useRef(SPIN);
   const stop = useRef(false);
-  const visible = useRef(true);
+  const animation = useRef<ReturnType<typeof visibleAnimation> | null>(null);
 
   const [R, setR] = useState(240);
   const [active, setActive] = useState<string | null>(null);
@@ -143,17 +144,6 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
     };
   }, []);
 
-  // Only animate while on screen.
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => {
-      visible.current = e.isIntersecting;
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   // Spin. Speed eases back up after a pause; stops instantly when a photo is enlarged.
   useEffect(() => {
     const apply = () => {
@@ -180,22 +170,18 @@ export default function Globe({ photos, paused, onToggle, onOpen, onError, empty
     };
     apply();
     if (reduce) return;
-    let raf = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      if (visible.current) {
-        const target = stop.current ? 0 : SPIN;
-        speed.current += (target - speed.current) * Math.min(1, dt * 4);
-        ry.current = (ry.current + speed.current * dt) % 360;
-        apply();
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    const stage = stageRef.current;
+    if (!stage) return;
+    const controller = visibleAnimation(stage, (_now, dt) => {
+      speed.current += (SPIN - speed.current) * Math.min(1, dt * 4);
+      ry.current = (ry.current + speed.current * dt) % 360;
+      apply();
+    }, { canRun: () => !stop.current });
+    animation.current = controller;
+    return () => { controller.dispose(); animation.current = null; };
   }, [reduce]);
+
+  useEffect(() => { animation.current?.wake(); }, [paused, active]);
 
   // Opening the viewer (or pausing) puts any enlarged photo back.
   useEffect(() => {

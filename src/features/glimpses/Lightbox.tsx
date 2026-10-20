@@ -112,7 +112,7 @@ export default function Lightbox({ photos, index, failed, onError, onChange, onC
           <div className="lightbox__missing">This photograph could not be loaded.</div>
         ) : (
           <img
-            key={photo.id}
+            key={`image-${photo.id}`}
             src={photo.src}
             alt={photo.alt}
             width={photo.width}
@@ -120,7 +120,7 @@ export default function Lightbox({ photos, index, failed, onError, onChange, onC
             onError={() => onError(photo.id)}
           />
         )}
-        <figcaption key={photo.id}>
+        <figcaption key={`caption-${photo.id}`}>
           <strong>{photo.caption}</strong>
           <span>
             {photo.event ? `${photo.event} · ` : ""}{index + 1} of {total}
