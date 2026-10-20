@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router';
 import { visibleAnimation } from '../features/space/visibleAnimation';
 import { ScrollMotion } from '../features/space/ScrollMotion';
 import Globe from '../features/glimpses/Globe';
+import Coverflow from '../features/glimpses/Coverflow';
+import RocketCanvas from '../features/glimpses/RocketCanvas';
 import { ThrustTechSection } from '../features/thrust-tech/ThrustTechSection';
 
 afterEach(() => vi.unstubAllGlobals());
@@ -92,6 +94,84 @@ describe('Animation work budget', () => {
     view.rerender(<Globe {...props} paused />);
     expect(rig.frames.size).toBe(0);
     view.rerender(<Globe {...props} paused={false} />);
+    expect(rig.frames.size).toBe(1);
+    view.unmount(); expect(rig.frames.size).toBe(0);
+  });
+
+  it('suspends the new photo reel offscreen, behind the viewer and after pausing, while manual nudges still work', () => {
+    const rig = frameHarness();
+    const props = { photos: [{ id: 'one', src: '/one.webp', alt: 'One', caption: 'One', year: 2026, width: 800, height: 600 }], empty: false, failed: new Set<string>(), onOpen: vi.fn(), onError: vi.fn() };
+    const view = render(<Coverflow {...props} />);
+    const stage = view.container.querySelector('.cf__stage')!;
+    const track = view.container.querySelector<HTMLElement>('.cf__track')!;
+    expect(rig.frames.size).toBe(0);
+    rig.enter(stage, true); rig.step(5);
+    const before = track.style.transform;
+    rig.enter(stage, false); rig.step(120);
+    expect(rig.frames.size).toBe(0);
+    expect(track.style.transform).toBe(before);
+    rig.enter(stage, true); rig.background(true);
+    expect(rig.frames.size).toBe(0);
+    rig.step(120); rig.background(false); rig.step(5);
+    expect(track.style.transform).not.toBe(before);
+    view.rerender(<Coverflow {...props} paused />);
+    expect(rig.frames.size).toBe(0);
+    view.rerender(<Coverflow {...props} />);
+    expect(rig.frames.size).toBe(1);
+    fireEvent.click(view.getByRole('button', { name: 'Pause scrolling' }));
+    rig.step(120);
+    expect(rig.frames.size).toBe(0);
+    const held = track.style.transform;
+    fireEvent.click(view.getByRole('button', { name: 'Scroll forward' }));
+    rig.step(120);
+    expect(track.style.transform).not.toBe(held);
+    expect(rig.frames.size).toBe(0);
+    fireEvent.click(view.getByRole('button', { name: 'Resume scrolling' }));
+    expect(rig.frames.size).toBe(1);
+    view.unmount(); expect(rig.frames.size).toBe(0);
+  });
+
+  it('keeps reduced-motion browsing manual without a continuous animation loop', () => {
+    const rig = frameHarness();
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('reduced-motion') }) as MediaQueryList);
+    const view = render(<Coverflow photos={[]} empty failed={new Set()} onOpen={vi.fn()} onError={vi.fn()} />);
+    const stage = view.container.querySelector('.cf__stage')!;
+    const track = view.container.querySelector<HTMLElement>('.cf__track')!;
+    rig.enter(stage, true); rig.step(120);
+    expect(rig.frames.size).toBe(0);
+    const before = track.style.transform;
+    fireEvent.keyDown(stage, { key: 'ArrowRight' }); rig.step();
+    expect(track.style.transform).not.toBe(before);
+    expect(rig.frames.size).toBe(0);
+    view.unmount();
+  });
+
+  it('stops the actual 3D rocket renderer offscreen, paused and backgrounded and cleans up its frames', () => {
+    const rig = frameHarness();
+    const ctx = {
+      setTransform: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn(),
+      closePath: vi.fn(), lineTo: vi.fn(), moveTo: vi.fn(), stroke: vi.fn(),
+      createRadialGradient: () => ({ addColorStop: vi.fn() }),
+    };
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(ctx as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 800, 600));
+    const view = render(<div className="glimpses__hero"><RocketCanvas paused={false} /></div>);
+    const canvas = view.container.querySelector('canvas')!;
+    expect(canvas).toBeInTheDocument();
+    expect(rig.frames.size).toBe(0);
+    rig.enter(canvas, true); rig.step(5);
+    expect(ctx.fill).toHaveBeenCalled();
+    const draws = ctx.clearRect.mock.calls.length;
+    rig.enter(canvas, false); rig.step(120);
+    expect(ctx.clearRect).toHaveBeenCalledTimes(draws);
+    expect(rig.frames.size).toBe(0);
+    rig.enter(canvas, true); rig.background(true);
+    expect(rig.frames.size).toBe(0);
+    rig.step(120); rig.background(false); rig.step(5);
+    expect(ctx.clearRect.mock.calls.length).toBeGreaterThan(draws);
+    view.rerender(<div className="glimpses__hero"><RocketCanvas paused /></div>);
+    expect(rig.frames.size).toBe(0);
+    view.rerender(<div className="glimpses__hero"><RocketCanvas paused={false} /></div>);
     expect(rig.frames.size).toBe(1);
     view.unmount(); expect(rig.frames.size).toBe(0);
   });

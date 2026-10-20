@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent, WheelEvent } from "react";
 import type { Glimpse } from "./data";
+import { visibleAnimation } from "../space/visibleAnimation";
 
 interface CoverflowProps {
   photos: Glimpse[];
   /** No photos yet: show empty glass cards. */
   empty: boolean;
   failed: Set<string>;
+  paused?: boolean;
   onError: (id: string) => void;
   onOpen: (index: number, el: HTMLElement) => void;
 }
@@ -35,7 +37,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * No React re-renders, no filters, no reflections, no per-card 3D. Hover or drag to hold it,
  * drag / swipe / scroll sideways to move it yourself, click a frame to open it full size.
  */
-export default function Coverflow({ photos, empty, failed, onError, onOpen }: CoverflowProps) {
+export default function Coverflow({ photos, empty, failed, paused = false, onError, onOpen }: CoverflowProps) {
   const [cardH, setCardH] = useState(260);
   const [playing, setPlaying] = useState(true);
 
@@ -46,7 +48,9 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
   const offset = useRef(0);
   const extra = useRef(0); // pending nudge from buttons / arrow keys, eased in
   const dirty = useRef(false);
-  const onScreen = useRef(true);
+  const animation = useRef<ReturnType<typeof visibleAnimation> | null>(null);
+  const blocked = useRef(paused);
+  blocked.current = paused;
   const hovering = useRef(false);
   const dragging = useRef(false);
   const focused = useRef(false);
@@ -91,17 +95,6 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
     return () => ro?.disconnect();
   }, []);
 
-  // only animate while the reel is on screen
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => {
-      onScreen.current = e.isIntersecting;
-    });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   // the loop: one transform write per frame
   useEffect(() => {
     const track = trackRef.current;
@@ -113,34 +106,33 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
     };
     paint();
 
-    let raf = 0;
-    let last = performance.now();
+    const stage = stageRef.current;
+    if (!stage) return;
     let speed = 0;
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      if (onScreen.current) {
-        const hold = hovering.current || dragging.current || focused.current;
-        const target = reduce || !playingRef.current || hold ? 0 : SPEED;
-        speed += (target - speed) * Math.min(1, dt * 5); // ease in / out instead of jerking
-        let move = speed * dt;
-        if (Math.abs(extra.current) > 0.5) {
-          const s = extra.current * Math.min(1, dt * 7);
-          extra.current -= s;
-          move += s;
-        } else {
-          extra.current = 0;
-        }
-        if (move !== 0 || dirty.current) {
-          offset.current += move;
-          paint();
-        }
+    const autoplay = () => !reduce && playingRef.current && !hovering.current && !dragging.current && !focused.current;
+    const controller = visibleAnimation(stage, (_now, dt) => {
+      const target = autoplay() ? SPEED : 0;
+      speed += (target - speed) * Math.min(1, dt * 5);
+      if (!target && Math.abs(speed) < 0.1) speed = 0;
+      let move = speed * dt;
+      if (Math.abs(extra.current) > 0.5) {
+        const s = extra.current * (reduce ? 1 : Math.min(1, dt * 7));
+        extra.current -= s;
+        move += s;
+      } else {
+        extra.current = 0;
       }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+      if (move !== 0 || dirty.current) {
+        offset.current += move;
+        paint();
+      }
+      if (!autoplay() && !speed && !extra.current) return false;
+    }, { canRun: () => !blocked.current && (autoplay() || Math.abs(speed) >= 0.1 || Math.abs(extra.current) > 0.5 || dirty.current) });
+    animation.current = controller;
+    return () => { controller.dispose(); animation.current = null; };
   }, [setW, reduce]);
+
+  useEffect(() => { animation.current?.wake(); }, [playing, paused]);
 
   // drag / swipe sideways
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -154,12 +146,14 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
       offset.current -= ev.clientX - lastX;
       lastX = ev.clientX;
       dirty.current = true;
+      animation.current?.wake();
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
       dragging.current = false;
+      animation.current?.wake();
       // a drag should not also count as a click
       window.setTimeout(() => {
         dragged.current = false;
@@ -174,10 +168,12 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; // let vertical scrolling pass through
     offset.current += e.deltaX;
     dirty.current = true;
+    animation.current?.wake();
   };
 
   const nudge = (dir: 1 | -1) => {
     extra.current += dir * avgW * 1.5;
+    animation.current?.wake();
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -208,16 +204,18 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
             aria-label={main ? `Enlarge: ${p.caption}` : undefined}
             onFocus={() => {
               focused.current = true;
+              animation.current?.wake();
             }}
             onBlur={() => {
               focused.current = false;
+              animation.current?.wake();
             }}
             onClick={(e) => {
               if (dragged.current) return;
               onOpen(f.index, e.currentTarget);
             }}
           >
-            {!failed.has(p.id) && (
+            {!failed.has(p.id) ? (
               <img
                 className="cf__img"
                 src={p.thumb ?? p.src}
@@ -229,6 +227,10 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
                 draggable="false"
                 onError={() => onError(p.id)}
               />
+            ) : (
+              <span className="cf__missing" role={main ? "img" : undefined} aria-label={main ? `Photo unavailable: ${p.caption}` : undefined}>
+                Photograph unavailable
+              </span>
             )}
             <span className="cf__cap">
               <strong>{p.caption}</strong>
@@ -254,10 +256,11 @@ export default function Coverflow({ photos, empty, failed, onError, onOpen }: Co
         tabIndex={empty ? -1 : 0}
         onPointerDown={onPointerDown}
         onPointerEnter={(e) => {
-          if (e.pointerType === "mouse") hovering.current = true;
+          if (e.pointerType === "mouse") { hovering.current = true; animation.current?.wake(); }
         }}
         onPointerLeave={() => {
           hovering.current = false;
+          animation.current?.wake();
         }}
         onWheel={onWheel}
         onKeyDown={onKeyDown}

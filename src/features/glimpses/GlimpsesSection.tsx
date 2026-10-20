@@ -70,7 +70,6 @@ export function GlimpsesSection() {
   const [motionOff, setMotionOff] = useState(false);
 
   const openerEl = useRef<HTMLElement | null>(null); // the button that opened the viewer
-  const openedId = useRef<string | null>(null); // photo that was open when it started
   const lastId = useRef<string | null>(null); // photo showing now
 
   const years = useMemo(
@@ -95,7 +94,6 @@ export function GlimpsesSection() {
 
   const open = (photos: Glimpse[], index: number, el: HTMLElement) => {
     openerEl.current = el;
-    openedId.current = photos[index].id;
     lastId.current = photos[index].id;
     setViewer({ photos, index });
   };
@@ -194,6 +192,10 @@ export function GlimpsesSection() {
           </div>
         )}
 
+        <p className="glimpses__count" aria-live="polite">
+          {`${visible.length} photograph${visible.length === 1 ? "" : "s"}${year === "all" ? " from all years" : ` from ${year}`}`}
+        </p>
+
         {!noPhotos && visible.length === 0 ? (
           <div className="glimpses__empty">
             <p>{`No photographs from ${year} yet.`}</p>
@@ -208,6 +210,7 @@ export function GlimpsesSection() {
             photos={visible}
             empty={noPhotos}
             failed={failed}
+            paused={viewer !== null}
             onError={markFailed}
             onOpen={openFromBrowse}
           />

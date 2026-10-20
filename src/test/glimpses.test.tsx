@@ -10,8 +10,11 @@ vi.mock('../features/glimpses/data', () => ({
   ],
 }));
 
-function gridButton(caption: string) {
-  return within(screen.getByRole('region', { name: 'Glimpses' })).getAllByRole('button', { name: `Enlarge: ${caption}` }).find(button => button.id.startsWith('glimpse-'))!;
+function browse() {
+  return within(screen.getByRole('group', { name: 'Photographs' }));
+}
+function browseButton(caption: string) {
+  return browse().getByRole('button', { name: `Enlarge: ${caption}` });
 }
 
 describe('Gallery integration', () => {
@@ -19,16 +22,16 @@ describe('Gallery integration', () => {
     const user = userEvent.setup(); render(<GlimpsesSection />);
     const filters = screen.getByRole('group', { name: 'Filter photographs by year' });
     await user.click(within(filters).getByRole('button', { name: '2024' }));
-    expect(document.getElementById('glimpse-fixture-one')).toBeNull();
-    expect(document.getElementById('glimpse-fixture-two')).toBeInTheDocument();
+    expect(browse().queryByRole('button', { name: 'Enlarge: Test moment one' })).toBeNull();
+    expect(browseButton('Test moment two')).toBeInTheDocument();
     expect(screen.getByText('1 photograph from 2024')).toBeInTheDocument();
     await user.click(within(filters).getByRole('button', { name: 'All years' }));
-    expect(document.getElementById('glimpse-fixture-one')).toBeInTheDocument();
+    expect(browseButton('Test moment one')).toBeInTheDocument();
   });
 
   it('opens the viewer, moves by keyboard, traps focus and restores focus on close', async () => {
     const user = userEvent.setup(); render(<GlimpsesSection />);
-    await user.click(gridButton('Test moment one'));
+    await user.click(browseButton('Test moment one'));
     const dialog = screen.getByRole('dialog', { name: 'Photograph 1 of 2' });
     const close = within(dialog).getByRole('button', { name: 'Close viewer' });
     expect(close).toHaveFocus();
@@ -38,15 +41,15 @@ describe('Gallery integration', () => {
     await user.keyboard('{ArrowRight}');
     expect(screen.getByRole('dialog', { name: 'Photograph 2 of 2' })).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    await waitFor(() => expect(document.getElementById('glimpse-fixture-two')).toHaveFocus());
+    await waitFor(() => expect(browseButton('Test moment one')).toHaveFocus());
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(document.body.style.overflow).toBe('');
   });
 
   it('keeps the gallery usable when a photo fails to load', () => {
     render(<GlimpsesSection />);
-    fireEvent.error(gridButton('Test moment one').querySelector('img')!);
+    fireEvent.error(browseButton('Test moment one').querySelector('img')!);
     expect(screen.getByRole('img', { name: 'Photo unavailable: Test moment one' })).toBeInTheDocument();
-    expect(document.getElementById('glimpse-fixture-two')).toBeInTheDocument();
+    expect(browseButton('Test moment two')).toBeInTheDocument();
   });
 });

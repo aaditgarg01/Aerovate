@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { visibleAnimation } from "../space/visibleAnimation";
 
 /**
  * A real 3D rocket (a small mesh with lighting and perspective, drawn on a canvas).
@@ -156,6 +157,7 @@ function toWorld(p: V3, b: Basis): V3 {
 export default function RocketCanvas({ paused }: { paused: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
+  const animation = useRef<ReturnType<typeof visibleAnimation> | null>(null);
   // The canvas is placed in the whole top area (heading + globe), so the rocket is never cut off.
   const markerRef = useRef<HTMLSpanElement>(null);
   const [host, setHost] = useState<HTMLElement | null>(null);
@@ -166,6 +168,7 @@ export default function RocketCanvas({ paused }: { paused: boolean }) {
 
   useEffect(() => {
     pausedRef.current = paused;
+    animation.current?.wake();
   }, [paused]);
 
   useEffect(() => {
@@ -187,6 +190,7 @@ export default function RocketCanvas({ paused }: { paused: boolean }) {
       canvas.width = Math.max(1, Math.round(W * dpr));
       canvas.height = Math.max(1, Math.round(H * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      animation.current?.wake();
     };
     resize();
     const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(resize);
@@ -201,7 +205,6 @@ export default function RocketCanvas({ paused }: { paused: boolean }) {
     let moving = 0;
     const particles: Particle[] = [];
     const pointer = { cx: 0, cy: 0, t: -1e9 };
-    let visible = true;
 
     const onMove = (e: PointerEvent) => {
       pointer.cx = e.clientX;
@@ -209,14 +212,6 @@ export default function RocketCanvas({ paused }: { paused: boolean }) {
       pointer.t = performance.now();
     };
     window.addEventListener("pointermove", onMove, { passive: true });
-
-    const io =
-      typeof IntersectionObserver === "undefined"
-        ? null
-        : new IntersectionObserver(([e]) => {
-            visible = e.isIntersecting;
-          });
-    io?.observe(canvas);
 
     const sizeOf = () => Math.max(110, Math.min(230, Math.min(W, H) * 0.28));
 
@@ -421,24 +416,19 @@ export default function RocketCanvas({ paused }: { paused: boolean }) {
       ctx.globalCompositeOperation = "source-over";
     };
 
-    let raf = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      if (!visible || W === 0 || H === 0) return;
+    const controller = visibleAnimation(canvas, (now, dt) => {
+      if (W === 0 || H === 0) return false;
       const time = now / 1000;
-      if (!pausedRef.current) step(dt, now, time);
+      step(dt, now, time);
       render(time);
-    };
-    raf = requestAnimationFrame(tick);
+    }, { canRun: () => !pausedRef.current });
+    animation.current = controller;
 
     return () => {
-      cancelAnimationFrame(raf);
+      controller.dispose();
+      animation.current = null;
       window.removeEventListener("pointermove", onMove);
       ro?.disconnect();
-      io?.disconnect();
     };
   }, [host]);
 

@@ -297,6 +297,10 @@
   background: rgb(255 255 255 / 0.08); color: transparent;
   clip-path: polygon(calc(var(--cut) - 1.5px) 0, 100% 0, 100% calc(100% - var(--cut) + 1.5px), calc(100% - var(--cut) + 1.5px) 100%, 0 100%, 0 calc(var(--cut) - 1.5px));
 }
+.cf__missing {
+  position: absolute; inset: 2px; display: grid; place-items: center;
+  padding: 1rem; background: #102236; color: #d3e3f2; font-size: 0.9rem;
+}
 /* caption slides up over the photo on hover / focus */
 .cf__cap {
   position: absolute; left: 2px; right: 2px; bottom: 2px; padding: 1.6rem 0.8rem 0.6rem; text-align: left;
