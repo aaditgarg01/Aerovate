@@ -1,53 +1,94 @@
-import { useState } from 'react';
-import { Button, Card, EmptyState, Section } from '../../components/ui/Primitives';
+import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { EmptyState, Section } from '../../components/ui/Primitives';
 import { Icon } from '../../components/ui/Icon';
 import { SocialIcon } from '../../components/ui/SocialIcon';
 import { pocs, pocYears, type Poc } from './data';
 import './pocs.css';
 
-type YearFilter = number | 'all';
+// Oldest to newest, left to right on the timeline.
+const years = [...new Set([...pocYears, ...pocs.map(person => person.year)])].sort((a, b) => a - b);
+const STORY_PREVIEW = 280;
+const SWIPE_DISTANCE = 50;
 
-// Newest year first; records keep their data-file order within a year.
-const years = [...new Set([...pocYears, ...pocs.map(person => person.year)])].sort((a, b) => b - a);
-const sorted = [...pocs].sort((a, b) => b.year - a.year);
-const latestYear = years.find(year => pocs.some(person => person.year === year));
-
-/** Member 6 owns this section, the year selector, cards and historical data. */
+/** Member 6 owns this section, the year timeline, POC spotlight and historical data. */
 export function PocsSection() {
-  const [year, setYear] = useState<YearFilter>(latestYear ?? 'all');
-  const visible = year === 'all' ? sorted : sorted.filter(person => person.year === year);
+  const [index, setIndex] = useState(years.length - 1);
+  const [direction, setDirection] = useState(1);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const year = years[index];
+  const person = pocs.find(entry => entry.year === year);
+
+  function select(next: number, focusTab = false) {
+    const target = Math.max(0, Math.min(years.length - 1, next));
+    if (focusTab) tabs.current[target]?.focus();
+    if (target === index) return;
+    setDirection(target > index ? 1 : -1);
+    setIndex(target);
+  }
+
+  function onTabKey(event: KeyboardEvent) {
+    const targets: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: years.length - 1 };
+    if (!(event.key in targets)) return;
+    event.preventDefault();
+    select(targets[event.key], true);
+  }
+
+  // Horizontal swipes on touch screens move between years; vertical scrolling is untouched.
+  function onPointerUp(event: PointerEvent) {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start) return;
+    const dx = event.clientX - start.x, dy = event.clientY - start.y;
+    if (Math.abs(dx) > SWIPE_DISTANCE && Math.abs(dx) > Math.abs(dy) * 1.5) select(index + (dx < 0 ? 1 : -1));
+  }
 
   return <Section id="pocs" number="03" eyebrow="The people behind the journey" title="Every launch has a team.">
-    <p className="section-copy">Meet the points of contact who helped bring Aerovate to life through the years.</p>
-    {pocs.length === 0 ? <EmptyState title="Our story, through its people.">The past-year POC directory is being put together. Confirmed names and details will be added here.</EmptyState> : <>
-      <div className="poc-toolbar">
-        <div className="poc-years" role="group" aria-label="Show POCs by year">
-          {years.map(y => <button key={y} type="button" className="poc-year" aria-pressed={year === y} onClick={() => setYear(y)}>{y}</button>)}
-          {years.length > 1 && <button type="button" className="poc-year" aria-pressed={year === 'all'} onClick={() => setYear('all')}>All years</button>}
-        </div>
-        <p className="poc-count" aria-live="polite">{countLabel(visible.length, year)}</p>
+    <p className="section-copy">Each edition of Aerovate had one point of contact who brought it together. Travel through the years to meet them and hear about their experience.</p>
+    {years.length === 0 ? <EmptyState title="Our story, through its people.">The past-year POC directory is being put together. Confirmed names and details will be added here.</EmptyState> : <>
+      <div className="poc-timeline" role="tablist" aria-label="Aerovate years" style={{ '--count': years.length, '--progress': years.length > 1 ? index / (years.length - 1) : 0 } as CSSProperties}>
+        <span className="poc-timeline-progress" aria-hidden="true" />
+        {years.map((y, i) => <button key={y} ref={node => { tabs.current[i] = node; }} type="button" role="tab" id={`poc-tab-${y}`} aria-selected={i === index} aria-controls="poc-panel" tabIndex={i === index ? 0 : -1}
+          className={`poc-tab${i < index ? ' poc-tab--past' : ''}`} onClick={() => select(i)} onKeyDown={onTabKey}>
+          <span className="poc-tab-dot" aria-hidden="true" />{y}
+        </button>)}
       </div>
-      {visible.length ? <ul className="poc-grid">{visible.map(person => <li key={person.id}><PocCard person={person} /></li>)}</ul> :
-        <div className="empty-state poc-empty">
-          <Icon name="orbit" />
-          <h3>No POCs listed for {year} yet.</h3>
-          <p>Confirmed names for this year haven’t been added. Browse another year or check back soon.</p>
-          {latestYear !== undefined && <Button variant="outline" onClick={() => setYear(latestYear)}>See {latestYear} POCs</Button>}
-        </div>}
+
+      <div id="poc-panel" role="tabpanel" aria-labelledby={`poc-tab-${year}`} tabIndex={0} className="poc-stage"
+        onPointerDown={event => { if (event.pointerType !== 'mouse') swipe.current = { x: event.clientX, y: event.clientY }; }}
+        onPointerUp={onPointerUp} onPointerCancel={() => { swipe.current = null; }}>
+        <div key={year} className="poc-slide" style={{ '--dir': direction } as CSSProperties}>
+          {person ? <PocSpotlight person={person} /> :
+            <div className="empty-state poc-empty">
+              <Icon name="orbit" />
+              <h3>No POC listed for {year} yet.</h3>
+              <p>The point of contact for this year hasn’t been confirmed. Browse another year or check back soon.</p>
+            </div>}
+        </div>
+      </div>
+      <p className="sr-only" aria-live="polite">{`Aerovate ${year}: ${person ? `${person.name}, ${person.role}` : 'no POC listed yet'}`}</p>
+
+      {years.length > 1 && <div className="poc-steps">
+        <button type="button" className="poc-step poc-step--prev" onClick={() => select(index - 1)} disabled={index === 0} aria-label={index > 0 ? `Previous year, ${years[index - 1]}` : 'Previous year'}>
+          <Icon name="arrow" /><span aria-hidden="true">{years[index - 1] ?? 'Start'}</span>
+        </button>
+        <span className="poc-step-count" aria-hidden="true">{String(index + 1).padStart(2, '0')} / {String(years.length).padStart(2, '0')}</span>
+        <button type="button" className="poc-step" onClick={() => select(index + 1)} disabled={index === years.length - 1} aria-label={index < years.length - 1 ? `Next year, ${years[index + 1]}` : 'Next year'}>
+          <span aria-hidden="true">{years[index + 1] ?? 'Latest'}</span><Icon name="arrow" />
+        </button>
+      </div>}
     </>}
   </Section>;
 }
 
-function countLabel(count: number, year: YearFilter) {
-  if (year === 'all') return `${count} ${count === 1 ? 'POC' : 'POCs'} across all years`;
-  return count ? `${count} ${count === 1 ? 'POC' : 'POCs'} from ${year}` : `No POCs listed for ${year}`;
-}
-
-function PocCard({ person }: { person: Poc }) {
+function PocSpotlight({ person }: { person: Poc }) {
   const [photoFailed, setPhotoFailed] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
   const profile = person.profileUrl ? describeProfile(person.profileUrl) : null;
+  const story = person.experience?.trim() || `Their Aerovate ${person.year} experience will be shared here soon.`;
+  const longStory = story.length > STORY_PREVIEW;
 
-  return <Card className={`poc-card${person.placeholder ? ' poc-card--pending' : ''}`}>
+  return <article className={`card poc-spotlight${person.placeholder ? ' poc-spotlight--pending' : ''}`} aria-labelledby={`poc-name-${person.id}`}>
     <div className="poc-photo">
       {person.photo && !photoFailed ?
         <img src={person.photo} alt="" width="480" height="480" loading="lazy" decoding="async" onError={() => setPhotoFailed(true)} /> :
@@ -55,10 +96,10 @@ function PocCard({ person }: { person: Poc }) {
           {person.placeholder ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20.5c.6-4 3.6-6.4 7.5-6.4s6.9 2.4 7.5 6.4" /></svg> : initials(person.name)}
         </span>}
     </div>
-    <div className="poc-body">
+    <div className="poc-head">
       <span className="eyebrow">Aerovate {person.year}</span>
-      <h3>{person.name}</h3>
-      <p>{person.role}</p>
+      <h3 id={`poc-name-${person.id}`}>{person.name}</h3>
+      <p className="poc-role">{person.role}</p>
       {(person.placeholder || profile) && <div className="poc-meta">
         {person.placeholder && <span className="poc-pending">Details pending</span>}
         {profile && <a className="poc-link" href={profile.url} target="_blank" rel="noopener noreferrer" aria-label={`${person.name} on ${profile.label} (opens in a new tab)`}>
@@ -66,7 +107,14 @@ function PocCard({ person }: { person: Poc }) {
         </a>}
       </div>}
     </div>
-  </Card>;
+    <figure className={`poc-story${longStory && !storyOpen ? ' poc-story--clamped' : ''}`}>
+      <figcaption className="eyebrow">Event experience</figcaption>
+      <blockquote id={`poc-story-${person.id}`}><p>{story}</p></blockquote>
+      {longStory && <button type="button" className="poc-story-toggle" aria-expanded={storyOpen} aria-controls={`poc-story-${person.id}`} onClick={() => setStoryOpen(!storyOpen)}>
+        {storyOpen ? 'Show less' : 'Read full experience'}
+      </button>}
+    </figure>
+  </article>;
 }
 
 function initials(name: string) {

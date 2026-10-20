@@ -11,7 +11,13 @@ describe('POC records', () => {
       expect(pocYears, person.id).toContain(person.year);
       if (person.photo) expect(person.photo, person.id).toMatch(new RegExp(`^/assets/pocs/${person.year}/`));
       if (person.profileUrl) expect(new URL(person.profileUrl).protocol, person.id).toBe('https:');
+      if (person.experience !== undefined) expect(person.experience.trim(), person.id).not.toBe('');
     }
+  });
+
+  it('have one point of contact per year', () => {
+    const years = pocs.map(person => person.year);
+    expect(new Set(years).size).toBe(years.length);
   });
 
   it('never attach photos or links to placeholder entries', () => {

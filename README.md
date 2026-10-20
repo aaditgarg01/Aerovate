@@ -60,7 +60,7 @@ npm run preview    # serve the production build
 | Rocket | The hero rocket uses image assets; the SVG fallback and component contract remain available for future 3D model integration. A 3D model is not yet mounted. |
 | Scroll and cursor | Native scrolling, frame-rate-independent cursor smoothing and reduced-motion fallbacks; decorative loops pause offscreen and in background tabs. |
 | Thrust Tech | Implemented, including repeatable logo entrance and collaboration animation. |
-| Past-year POCs | Year selector, cards, photo fallback and empty states implemented. Placeholder entries marked "Details pending" are shown until approved names, photos and profile links are added to `src/features/pocs/data.ts`. |
+| Past-year POCs | Interactive 2024–2026 timeline (one POC per year) with keyboard, swipe and previous/next controls; spotlight card with photo fallback, profile link and event experience. Placeholders marked "Details pending" are shown until approved names, photos, links and experiences are added to `src/features/pocs/data.ts`. |
 | Glimpses | Gallery interface implemented; approved historical photographs and captions are pending. |
 
 Games and backend work are deferred. Dates, venue, POC names and historical photographs have not been invented. The hero artwork is a design background, not documentary event photography. Event details should be approved before the public announcement.
