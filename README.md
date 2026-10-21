@@ -17,6 +17,7 @@ Built together by the **Aerovate Tech Team**.
 | [Harsh Choudhary](https://github.com/SpyApple-web) · [LinkedIn](https://www.linkedin.com/in/harsh-choudhary-4b4300424/) | Scroll animation and cursor interactivity. |
 | [Rishit Aggarwal](https://github.com/aggarwalrishit9) · [LinkedIn](https://www.linkedin.com/in/rishit-aggarwal-88504b419/) | Thrust Tech section. |
 | [Sushant Singh](https://github.com/singhsushant4684-eng) · [LinkedIn](https://www.linkedin.com/in/sushant-singh-663301378/) | Glimpses gallery. |
+| [Ayush Bhuyan](https://github.com/ayushbhuyan2008) · [LinkedIn](https://www.linkedin.com/in/ayush-animesh-bhuyan-b732b4377) | Past-year POC timeline. |
 
 Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: Each person can have GitHub and LinkedIn profiles; the footer shows names and links without contribution descriptions. Keep this table in sync when changing contributor details.
 
