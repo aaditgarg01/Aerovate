@@ -1,9 +1,0 @@
-.rocket-scene { position: relative; min-height: 540px; isolation: isolate; }
-.rocket-illustration { position: absolute; z-index: 2; width: 320px; height: 500px; top: 4%; left: 50%; transform: translateX(-50%) rotate(24deg); filter: drop-shadow(-20px 20px 28px #020b1690); }
-.orbit-ring { position: absolute; left: 50%; top: 50%; width: 420px; height: 420px; border: 1px solid #ffffff24; border-radius: 50%; transform: translate(-50%, -50%) rotate(-30deg) scaleY(.55); }
-.orbit-ring--two { width: 540px; height: 540px; transform: translate(-50%, -50%) rotate(35deg) scaleY(.65); border-style: dashed; opacity: .45; }
-.orbit-ring--one::after { content: ''; width: 8px; height: 8px; background: var(--color-accent); border-radius: 50%; position: absolute; top: 47%; left: -4px; box-shadow: 0 0 20px #bbd7ed; }
-.scene-note { position: absolute; color: var(--color-muted); font: 10px var(--font-heading); letter-spacing: .14em; z-index: 3; }
-.scene-note--top { top: 14%; right: 0; display: flex; gap: 35px; }
-.scene-note--bottom { bottom: 10%; left: 14%; border-top: 1px solid var(--color-border); padding-top: 12px; }
-@media (max-width: 600px) { .rocket-scene { min-height: 365px; } .rocket-illustration { height: 365px; width: 250px; top: -10px; } .orbit-ring { width: 290px; height: 290px; } .orbit-ring--two { width: 360px; height: 360px; } .scene-note--top { left: 0; right: auto; top: 6%; gap: 12px; } .scene-note--bottom { left: 5%; bottom: 6%; } }

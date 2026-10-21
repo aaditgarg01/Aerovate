@@ -6,3 +6,6 @@ coverage/
 !.env.example
 *.local
 .vercel/
+
+# Keep a single application at the repository root.
+/Aerovate/
