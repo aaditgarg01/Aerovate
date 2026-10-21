@@ -24,6 +24,8 @@ Website credits and profile links are configured in [`src/config/site.ts`](src/c
 
 Use Node.js 24 LTS (see `.nvmrc`) and npm. Dependencies are pinned in `package-lock.json`.
 
+Run these commands from the repository root, beside `package.json`. This is the only application; do not add a second copy inside an `Aerovate/` subfolder. Source files belong in the root `src/` directory, and assets in the root `public/` directory.
+
 ```sh
 npm ci
 npm run dev

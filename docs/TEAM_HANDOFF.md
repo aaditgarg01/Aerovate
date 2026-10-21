@@ -10,6 +10,8 @@ npm ci
 npm run dev
 ```
 
+Work in the repository root (the directory containing `package.json`). Use its `src/` and `public/` folders; do not copy the project into a nested `Aerovate/` directory.
+
 ## Ownership
 
 The existing branch names come from the earlier plan. They are preserved to avoid disrupting checkouts; their revised responsibilities are below. Games and backend work are deferred.
