@@ -57,3 +57,18 @@
   .poc-story { margin-top: 16px; padding: 16px 16px 18px; }
   #pocs .poc-story p { font-size: 15px; }
 }
+
+/* HUD corner brackets lock on when the spotlight is hovered or the panel has keyboard focus */
+#pocs .poc-spotlight { position: relative; }
+.poc-spotlight::before {
+  --c: #63d5efb3; --l: 22px;
+  content: ''; position: absolute; inset: 12px; z-index: 1; pointer-events: none; opacity: 0;
+  background:
+    linear-gradient(var(--c), var(--c)) left top / var(--l) 1px, linear-gradient(var(--c), var(--c)) left top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right top / var(--l) 1px, linear-gradient(var(--c), var(--c)) right top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) left bottom / var(--l) 1px, linear-gradient(var(--c), var(--c)) left bottom / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right bottom / var(--l) 1px, linear-gradient(var(--c), var(--c)) right bottom / 1px var(--l);
+  background-repeat: no-repeat;
+  transition: inset .5s cubic-bezier(.2, .8, .2, 1), opacity .35s;
+}
+.poc-spotlight:hover::before, .poc-stage:focus-visible .poc-spotlight::before { inset: 5px; opacity: 1; }

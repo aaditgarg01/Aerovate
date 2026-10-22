@@ -1,7 +1,8 @@
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { EmptyState, Section } from '../../components/ui/Primitives';
 import { Icon } from '../../components/ui/Icon';
 import { SocialIcon } from '../../components/ui/SocialIcon';
+import { launchRocket } from '../fx/rocketFlight';
 import { pocs, pocYears, type Poc } from './data';
 import './pocs.css';
 
@@ -16,8 +17,11 @@ export function PocsSection() {
   const [direction, setDirection] = useState(1);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const swipe = useRef<{ x: number; y: number } | null>(null);
+  const flight = useRef<() => void>(() => {});
   const year = years[index];
   const person = pocs.find(entry => entry.year === year);
+
+  useEffect(() => () => flight.current(), []);
 
   function select(next: number, focusTab = false) {
     const target = Math.max(0, Math.min(years.length - 1, next));
@@ -25,6 +29,20 @@ export function PocsSection() {
     if (target === index) return;
     setDirection(target > index ? 1 : -1);
     setIndex(target);
+    flyBetween(index, target);
+  }
+
+  // A small rocket hops along the timeline from the previous year's marker to the new one.
+  function flyBetween(fromIndex: number, toIndex: number) {
+    const centre = (i: number) => {
+      const rect = tabs.current[i]?.querySelector('.poc-tab-dot')?.getBoundingClientRect();
+      return rect && { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    };
+    const from = centre(fromIndex), to = centre(toIndex);
+    if (!from || !to) return;
+    flight.current();
+    const distance = Math.hypot(to.x - from.x, to.y - from.y);
+    flight.current = launchRocket({ from, to, curve: { x: 0, y: -Math.min(90, 30 + distance * .22) }, size: 30, duration: 520 + Math.min(700, distance * 1.1), profile: 'hop' });
   }
 
   function onTabKey(event: KeyboardEvent) {
@@ -88,7 +106,7 @@ function PocSpotlight({ person }: { person: Poc }) {
   const story = person.experience?.trim() || `Their Aerovate ${person.year} experience will be shared here soon.`;
   const longStory = story.length > STORY_PREVIEW;
 
-  return <article className={`card poc-spotlight${person.placeholder ? ' poc-spotlight--pending' : ''}`} aria-labelledby={`poc-name-${person.id}`}>
+  return <article className={`card poc-spotlight${person.placeholder ? ' poc-spotlight--pending' : ''}`} aria-labelledby={`poc-name-${person.id}`} data-fx-tilt>
     <div className="poc-photo">
       {person.photo && !photoFailed ?
         <img src={person.photo} alt="" width="480" height="480" loading="lazy" decoding="async" onError={() => setPhotoFailed(true)} /> :
