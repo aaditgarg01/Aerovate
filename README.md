@@ -47,6 +47,7 @@ npm run preview    # serve the production build
 - Single-page navigation with URL hashes that follow scrolling, including Past POCs at `/#pocs`. The legacy `/pocs` route redirects to that section.
 - Sunset hero with a scroll-driven launch sequence, countdown, ignition, liftoff and nightfall.
 - Rocket cursor with smooth steering, flame and exhaust, magnetic controls, hover labels and card spotlights on supported desktop pointers.
+- Interactive text layer: headings roll to a glowing copy, HUD labels decode, body copy is torch-lit under the pointer and buttons catch a light sweep (fine pointers only). Rocket flights with flame, shock diamonds, sparks and smoke launch from the footer's back-to-top button and hop between years on the POC timeline. All of it is off with reduced motion.
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
 - Native scrolling without wheel interception; offscreen/background animation suspension, capped decorative drawing and cached gallery/marquee measurements.
@@ -87,6 +88,7 @@ src/
   features/thrust-tech/   # Thrust Tech introduction and animation
   features/pocs/          # past-year POC section and data
   features/glimpses/      # gallery, globe and lightbox
+  features/fx/            # interactive text effects and rocket flights
   test/                   # automated checks
 public/assets/            # rocket, POC and gallery assets
 ```

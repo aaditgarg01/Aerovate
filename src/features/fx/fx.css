@@ -1,0 +1,55 @@
+/* Interactive text and motion layer (src/features/fx). Hover rules apply only under html.fx-hover,
+   which TextFx adds for fine pointers when motion is allowed. */
+
+/* 1 · Headings: each word rolls up to reveal a glowing copy (inside the existing reveal masks) */
+html.fx-hover.reveal-ready .section h2 .word > span {
+  position: relative;
+  transition: transform 1.1s var(--ease-launch) calc(var(--wi, 0) * 55ms + 180ms), translate .62s cubic-bezier(.7, 0, .2, 1) calc(var(--wi, 0) * 38ms);
+}
+html.fx-hover .tt-heading .tt-ln > span { position: relative; transition: translate .7s cubic-bezier(.7, 0, .2, 1); }
+html.fx-hover .tt-heading .tt-l2 > span { transition-delay: 70ms; }
+html.fx-hover.reveal-ready .section h2 .word > span::after,
+html.fx-hover .tt-heading .tt-ln > span::after {
+  content: attr(data-fx-text);
+  position: absolute; left: 0; top: calc(100% + .12em);
+  white-space: nowrap;
+  background: linear-gradient(100deg, #ffffff 5%, var(--color-highlight) 50%, #9db4ff 95%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  pointer-events: none;
+}
+html.fx-hover.reveal-ready .section.is-revealed h2:hover .word > span,
+html.fx-hover .tt-heading:hover .tt-ln > span { translate: 0 calc(-100% - .12em); }
+
+/* 2 · Decoding labels glow while they resolve */
+html.fx-hover .fx-scrambling { color: var(--color-highlight); text-shadow: 0 0 14px #63d5ef8c; }
+
+/* 3 · Body copy: a torch that follows the pointer */
+html.fx-hover .fx-lit {
+  background-image: radial-gradient(circle 170px at var(--fx-x, -999px) var(--fx-y, -999px), #ffffff 0%, #ffffff 14%, #9fe9ff 42%, var(--fx-base, currentColor) 78%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* 4 · Light sweep across buttons */
+html.fx-hover :is(.button, .poc-step, .poc-link) { position: relative; overflow: hidden; isolation: isolate; }
+html.fx-hover :is(.button, .poc-step, .poc-link)::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, #bbd7ed38 50%, transparent 70%);
+  translate: -115% 0; transition: translate .75s cubic-bezier(.2, .8, .2, 1);
+}
+html.fx-hover :is(.button, .poc-step, .poc-link):not(:disabled):hover::before { translate: 115% 0; }
+
+/* 5 · Holographic tilt for cards that opt in with data-fx-tilt */
+html.fx-hover [data-fx-tilt] { transform: perspective(1100px) rotateX(var(--fx-rx, 0deg)) rotateY(var(--fx-ry, 0deg)); transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+html.fx-hover [data-fx-tilt].fx-tilting { transition-duration: .15s; }
+
+/* 6 · Rocket flights draw on a temporary full-screen canvas */
+.fx-rocket-layer { position: fixed; inset: 0; z-index: 35; width: 100%; height: 100%; pointer-events: none; }
+
+/* 7 · Footer headline: a sheen of light crosses the letters */
+html.fx-hover .footer h2, html.fx-hover .footer h2 > span {
+  background: linear-gradient(100deg, var(--fx-ink, #faf8fc) 40%, #d6f7ff 48%, #ffffff 50%, #d6f7ff 52%, var(--fx-ink, #faf8fc) 60%) 100% 0 / 260% 100% no-repeat;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  transition: background-position 1.2s cubic-bezier(.2, .8, .2, 1);
+}
+html.fx-hover .footer h2 > span { --fx-ink: var(--footer-accent); }
+html.fx-hover .footer h2:hover, html.fx-hover .footer h2:hover > span { background-position: 0% 0; }
