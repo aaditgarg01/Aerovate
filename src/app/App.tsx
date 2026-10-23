@@ -3,12 +3,14 @@ import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { ActionLink } from '../components/ui/Primitives';
 import { LandingSection, EventSection } from '../features/landing/LandingSection';
+import { AboutSection, HistorySection } from '../features/landing/AboutSections';
 import { ThrustTechSection } from '../features/thrust-tech/ThrustTechSection';
 import { PocsSection } from '../features/pocs/PocsSection';
 import { GlimpsesSection } from '../features/glimpses/GlimpsesSection';
 import { ScrollMarquee, ScrollMotion } from '../features/space/ScrollMotion';
 import { CursorLayer } from '../features/space/Cursor';
 import { TextFx } from '../features/fx/TextFx';
+import { RocketModelSection } from '../features/rocket-model/RocketModelSection';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RouteEffects } from './RouteEffects';
 
@@ -23,6 +25,9 @@ export function App() {
             <ThrustTechSection />
             <div className="page-container">
               <EventSection />
+              <AboutSection />
+              <HistorySection />
+              <RocketModelSection />
               <PocsSection />
               <GlimpsesSection />
             </div>

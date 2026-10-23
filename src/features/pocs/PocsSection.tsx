@@ -61,7 +61,7 @@ export function PocsSection() {
     if (Math.abs(dx) > SWIPE_DISTANCE && Math.abs(dx) > Math.abs(dy) * 1.5) select(index + (dx < 0 ? 1 : -1));
   }
 
-  return <Section id="pocs" number="03" eyebrow="The people behind the journey" title="Every launch has a team.">
+  return <Section id="pocs" number="06" eyebrow="The people behind the journey" title="Every launch has a team.">
     <p className="section-copy">Each edition of Aerovate had one point of contact who brought it together. Travel through the years to meet them and hear about their experience.</p>
     {years.length === 0 ? <EmptyState title="Our story, through its people.">The past-year POC directory is being put together. Confirmed names and details will be added here.</EmptyState> : <>
       <div className="poc-timeline" role="tablist" aria-label="Aerovate years" style={{ '--count': years.length, '--progress': years.length > 1 ? index / (years.length - 1) : 0 } as CSSProperties}>
