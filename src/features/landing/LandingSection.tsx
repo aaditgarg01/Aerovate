@@ -1,6 +1,4 @@
 import { Section } from '../../components/ui/Primitives';
-import { Icon } from '../../components/ui/Icon';
-import { Link } from 'react-router';
 import { HeroLaunch } from '../space/HeroLaunch';
 import './landing.css';
 
@@ -35,9 +33,10 @@ export function EventSection() {
     <div className="event-grid">
       <div className="event-overview">
         <h3 className="eyebrow">Overview</h3>
-        <p className="section-copy">Take your first step into model rocketry with this two-day, hands-on aerospace workshop (partnered with Thrust Tech).</p>
-        <p className="section-copy">Learn the fundamentals of aerodynamics, rocket stability, propulsion, and rocket design, then design and simulate your own rocket using OpenRocket. On Day 2, build your model rocket with the provided materials and put it to the test in a <strong>supervised launch</strong>.</p>
-        <p className="event-closing">Experience aerospace engineering from <strong>concept to launch</strong> at Aerovate 3.0.</p>
+        <p className="section-copy">Feel the countdown. Build for liftoff. Aerovate 3.0 brings you two immersive days of model rocketry with Thrust Tech—where an idea on your screen becomes a rocket on the launchpad.</p>
+        <p className="section-copy">Start with the science that makes flight possible: aerodynamics, stability and propulsion. Design your rocket in OpenRocket, put it through simulation, and discover how every design choice shapes its journey skyward.</p>
+        <p className="section-copy">Then roll up your sleeves. On Day 2, turn your design into a model rocket using the materials provided, bring your team’s work to the launchpad, and experience the thrill of a <strong>supervised launch</strong>.</p>
+        <p className="event-closing">From your first sketch to the final countdown—<strong>build something that takes flight.</strong></p>
       </div>
       <dl className="event-facts">
         <div><dt>Event</dt><dd>Aerovate 3.0</dd></div>
@@ -45,7 +44,6 @@ export function EventSection() {
         <div><dt>Time</dt><dd><time dateTime="09:00">9 AM</time>–<time dateTime="17:00">5 PM</time></dd></div>
         <div><dt>Venue</dt><dd>VOC Gallery &amp; Men’s Outdoor Stadium</dd></div>
         <div><dt>Team size</dt><dd>4–5 members</dd></div>
-        <div><dt>Explore the legacy</dt><dd><Link to="/#pocs">Meet past POCs <Icon name="diagonal" width="16" height="16" /></Link></dd></div>
       </dl>
     </div>
   </Section>;

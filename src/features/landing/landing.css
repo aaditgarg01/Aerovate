@@ -111,7 +111,6 @@
 .event-facts > div { display: flex; justify-content: space-between; gap: 20px; padding: 17px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; }
 .event-facts dt { color: var(--color-muted); flex-shrink: 0; }
 .event-facts dd { margin: 0; text-align: right; }
-.event-facts a { display: inline-flex; align-items: center; gap: 8px; }
 
 @media (min-width: 1800px) {
   .hero-inner { width: min(86%, 1580px); }
