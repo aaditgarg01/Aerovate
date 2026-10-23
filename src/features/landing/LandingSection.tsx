@@ -1,5 +1,7 @@
 import { Section } from '../../components/ui/Primitives';
 import { HeroLaunch } from '../space/HeroLaunch';
+import { ExperienceDiagram } from './ExperienceDiagram';
+import { Icon } from '../../components/ui/Icon';
 import './landing.css';
 
 /** Member 2 owns this starting composition and the final approved event copy. */
@@ -29,22 +31,45 @@ function Chars({ text }: { text: string }) {
 }
 
 export function EventSection() {
-  return <Section id="event" number="02" eyebrow="The experience" title="Design. Simulate. Build. Launch.">
-    <div className="event-grid">
-      <div className="event-overview">
-        <h3 className="eyebrow">Overview</h3>
-        <p className="section-copy">Feel the countdown. Build for liftoff. Aerovate 3.0 brings you two immersive days of model rocketry with Thrust Tech—where an idea on your screen becomes a rocket on the launchpad.</p>
-        <p className="section-copy">Start with the science that makes flight possible: aerodynamics, stability and propulsion. Design your rocket in OpenRocket, put it through simulation, and discover how every design choice shapes its journey skyward.</p>
-        <p className="section-copy">Then roll up your sleeves. On Day 2, turn your design into a model rocket using the materials provided, bring your team’s work to the launchpad, and experience the thrill of a <strong>supervised launch</strong>.</p>
-        <p className="event-closing">From your first sketch to the final countdown—<strong>build something that takes flight.</strong></p>
+  return <Section id="event" number="02" eyebrow="The experience" title="From an idea to ignition." className="experience-section">
+    <div className="experience-mission">
+      <div className="experience-intro">
+        <span className="experience-partner"><span className="status-dot" />Aerovate 3.0 <span aria-hidden="true">×</span> Thrust Tech</span>
+        <p className="experience-lead">Two days. One rocket.<br />A whole new perspective.</p>
+        <p className="section-copy">Feel the countdown. Build for liftoff. Get inside the science of model rocketry, then turn your team’s imagination into something that leaves the ground.</p>
+        <ol className="experience-stages" aria-label="Workshop stages">
+          {['Design', 'Simulate', 'Build', 'Launch'].map((stage, i) => <li key={stage}><span>{stage}</span>{i < 3 && <Icon name="arrow" width="15" height="15" />}</li>)}
+        </ol>
       </div>
-      <dl className="event-facts">
-        <div><dt>Event</dt><dd>Aerovate 3.0</dd></div>
-        <div><dt>Date</dt><dd><time dateTime="2026-09-11">11</time>–<time dateTime="2026-09-12">12 September 2026</time></dd></div>
-        <div><dt>Time</dt><dd><time dateTime="09:00">9 AM</time>–<time dateTime="17:00">5 PM</time></dd></div>
-        <div><dt>Venue</dt><dd>VOC Gallery &amp; Men’s Outdoor Stadium</dd></div>
-        <div><dt>Team size</dt><dd>4–5 members</dd></div>
-      </dl>
+      <ExperienceDiagram />
     </div>
+
+    <div className="experience-days">
+      <article className="experience-day">
+        <span className="experience-day-number" aria-hidden="true">01</span>
+        <div className="experience-day-content">
+          <span className="eyebrow">11 September · Day 1</span>
+          <h3>Think it. Test it.</h3>
+          <p>Uncover the forces behind flight—aerodynamics, stability and propulsion. Design your rocket in <strong>OpenRocket</strong>, simulate its flight, and shape every detail before the build.</p>
+          <span className="experience-day-note"><Icon name="orbit" width="16" height="16" />Flight fundamentals &amp; simulation</span>
+        </div>
+      </article>
+      <article className="experience-day experience-day--launch">
+        <span className="experience-day-number" aria-hidden="true">02</span>
+        <div className="experience-day-content">
+          <span className="eyebrow">12 September · Day 2</span>
+          <h3>Make it. Launch it.</h3>
+          <p>Roll up your sleeves and build your model rocket with the materials provided. Bring your team’s work to the launchpad and feel the thrill of a <strong>supervised launch.</strong></p>
+          <span className="experience-day-note"><Icon name="diagonal" width="16" height="16" />Hands-on build &amp; supervised launch</span>
+        </div>
+      </article>
+    </div>
+
+    <dl className="experience-facts">
+      <div><dt>Mission dates</dt><dd><time dateTime="2026-09-11">11</time>–<time dateTime="2026-09-12">12 Sept 2026</time></dd></div>
+      <div><dt>Daily window</dt><dd><time dateTime="09:00">9 AM</time>–<time dateTime="17:00">5 PM</time></dd></div>
+      <div><dt>Mission venues</dt><dd>VOC Gallery &amp; Men’s Outdoor Stadium</dd></div>
+      <div><dt>Your crew</dt><dd>4–5 members</dd></div>
+    </dl>
   </Section>;
 }

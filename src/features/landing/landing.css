@@ -101,16 +101,67 @@
   pointer-events: none;
 }
 
-.event-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 60px; align-items: start; }
-.event-overview { min-width: 0; }
-.event-overview h3 { margin: 0 0 16px; }
-.event-overview .section-copy { margin: 0 0 20px; max-width: none; }
-.event-overview strong { color: var(--color-text); font-weight: 600; }
-.event-closing { margin: 28px 0 0; font-size: 16px; line-height: 1.8; color: var(--color-muted); }
-.event-facts { margin: 0; }
-.event-facts > div { display: flex; justify-content: space-between; gap: 20px; padding: 17px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; }
-.event-facts dt { color: var(--color-muted); flex-shrink: 0; }
-.event-facts dd { margin: 0; text-align: right; }
+/* The Experience: a mission briefing, workshop journey and launch blueprint. */
+.experience-section { grid-template-columns: 1fr; gap: 24px; padding-block: 80px; }
+.experience-section .section-label { justify-content: flex-start; gap: 22px; }
+.experience-section .section-label svg { margin: 0; }
+.experience-section .section-body h2 { max-width: none; margin: 0 0 38px; font-size: clamp(38px, 5.2vw, 76px); line-height: 1.08; letter-spacing: -.055em; }
+.experience-section .section-body h2 > .word:last-child { color: var(--color-highlight); }
+.experience-mission { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(32px, 6vw, 100px); align-items: center; margin-bottom: 36px; }
+.experience-intro { padding-block: 16px; min-width: 0; }
+.experience-partner { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: var(--color-accent); font: 10px/1.6 var(--font-heading); text-transform: uppercase; letter-spacing: .15em; }
+.experience-partner > span:not(.status-dot) { color: #6c889f; }
+.experience-lead { margin: 26px 0 18px; color: #f5f9ff; font: 400 clamp(25px, 2.5vw, 36px)/1.25 var(--font-heading); letter-spacing: -.04em; }
+.experience-intro .section-copy { margin: 0; max-width: 500px; color: #aabccd; font-size: 15px; }
+.experience-stages { display: flex; flex-wrap: wrap; gap: 14px; list-style: none; padding: 22px 0 0; margin: 26px 0 0; border-top: 1px solid var(--color-border); }
+.experience-stages li { display: flex; align-items: center; gap: 14px; color: #d4e4f0; font: 10px/1.5 var(--font-heading); text-transform: uppercase; letter-spacing: .14em; }
+.experience-stages li:last-child { color: var(--color-highlight); }
+.experience-stages svg { color: #5e839e; }
+.experience-blueprint { min-width: 0; margin: 0; padding: 18px 20px 16px; border: 1px solid #82b8de26; border-radius: 4px; background: radial-gradient(ellipse at 55% 46%, #34506d47, transparent 65%), repeating-linear-gradient(0deg, transparent 0 31px, #91b8d008 31px 32px), repeating-linear-gradient(90deg, transparent 0 31px, #91b8d008 31px 32px), #10223466; }
+.experience-blueprint-top { display: flex; justify-content: space-between; gap: 16px; color: #8eaac0; font: 8px/1.5 var(--font-heading); text-transform: uppercase; letter-spacing: .15em; }
+.experience-blueprint-svg { display: block; width: 100%; height: auto; }
+.experience-blueprint figcaption { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid #82b8de26; color: #c4dcec; font: 9px/1.6 var(--font-heading); text-transform: uppercase; letter-spacing: .2em; }
+.experience-blueprint figcaption > span:last-child { margin-left: auto; color: var(--color-highlight); font-size: 18px; }
+.experience-signal { width: 5px; height: 5px; border-radius: 50%; background: var(--color-highlight); box-shadow: 0 0 9px #63d5ef66; }
+.experience-days { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.experience-day { display: flex; gap: 24px; position: relative; min-width: 0; padding: 30px; border: 1px solid #8fb8d62b; border-radius: 4px; background: linear-gradient(130deg, #34506d36, #13233230); transition: border-color .25s, transform .25s; }
+.experience-day--launch { border-top-color: #63d5ef80; background: radial-gradient(ellipse at 100% 0, #63d5ef13, transparent 65%), #13233230; }
+.experience-day-number { flex-shrink: 0; font: 400 58px/1 var(--font-heading); letter-spacing: -.08em; color: #7fabc34d; }
+.experience-day--launch .experience-day-number { color: #63d5ef70; }
+.experience-day-content { min-width: 0; }
+.experience-day .eyebrow { font-size: 9px; letter-spacing: .13em; }
+.experience-day h3 { margin: 10px 0 12px; color: #f5f9ff; font: 500 clamp(23px, 2.2vw, 30px)/1.1 var(--font-heading); letter-spacing: -.04em; }
+.experience-day p { margin: 0; color: #aabccd; font-size: 14px; line-height: 1.8; }
+.experience-day strong { color: #e3f1fa; font-weight: 500; }
+.experience-day-note { display: flex; align-items: center; gap: 10px; margin-top: 22px; color: #a5c5da; font-size: 10px; line-height: 1.6; }
+.experience-day-note svg { flex-shrink: 0; color: var(--color-highlight); }
+.experience-facts { display: grid; grid-template-columns: 1.1fr .9fr 1.8fr 1fr; gap: 28px; margin: 32px 0 0; padding-top: 26px; border-top: 1px solid var(--color-border); }
+.experience-facts > div { min-width: 0; }
+.experience-facts dt { margin-bottom: 9px; color: #819bb0; font: 9px/1.5 var(--font-heading); letter-spacing: .13em; text-transform: uppercase; }
+.experience-facts dd { margin: 0; color: #e1edf6; font-size: 14px; line-height: 1.6; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { .experience-day:hover { transform: translateY(-4px); border-color: #91d4ee66; } }
+@media (max-width: 959px) {
+  .experience-section { padding-block: 56px; }
+  .experience-mission { gap: 30px; }
+  .experience-day { gap: 18px; padding: 24px; }
+  .experience-day-number { font-size: 44px; }
+  .experience-facts { grid-template-columns: 1fr 1fr; gap: 22px 30px; }
+}
+@media (max-width: 700px) {
+  .experience-mission, .experience-days { grid-template-columns: 1fr; }
+  .experience-mission { gap: 22px; }
+  .experience-blueprint { max-width: 480px; width: 100%; justify-self: center; }
+  .experience-intro { padding-top: 0; }
+  .experience-section .section-body h2 { font-size: clamp(38px, 8vw, 56px); margin-bottom: 28px; }
+  .experience-day-number { font-size: 48px; }
+}
+@media (max-width: 400px) {
+  .experience-day { padding: 22px 18px; gap: 16px; }
+  .experience-day-number { font-size: 38px; }
+  .experience-stages, .experience-stages li { gap: 10px; }
+  .experience-stages li { font-size: 9px; letter-spacing: .1em; }
+  .experience-facts { gap: 20px 18px; }
+}
 
 @media (min-width: 1800px) {
   .hero-inner { width: min(86%, 1580px); }
@@ -123,7 +174,6 @@
   .hero-backdrop img { object-position: 68% bottom; }
   .hero::before { background: linear-gradient(90deg, #0b203685, #102b4638 70%, transparent); }
   .hero .hero-description { font-size: 18px; }
-  .event-grid { gap: 30px; }
 }
 
 @media (max-width: 600px) {
@@ -140,5 +190,4 @@
   .hero::before { background: linear-gradient(180deg, #19334e 0%, #19334eee 27%, #19334e55 45%, transparent 66%); }
   .hero::after { background: linear-gradient(90deg, #0b20362e, transparent 75%); }
   .hero-rocket-stage { inset: 42% -3% 0 32%; }
-  .event-grid { grid-template-columns: 1fr; gap: 20px; }
 }
