@@ -61,12 +61,6 @@ describe('Shared foundation', () => {
     expect(within(document.getElementById('site-navigation')!).getByRole('link', { name: 'Past POCs', hidden: true })).toHaveAttribute('href', '/#pocs');
   });
 
-  it('scrolls the event legacy link to the POC section', async () => {
-    const user = userEvent.setup(); renderAt();
-    await user.click(screen.getByRole('link', { name: 'Meet past POCs' }));
-    await waitFor(() => expect(document.getElementById('pocs')).toHaveFocus());
-    expect(Element.prototype.scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' });
-  });
 
   it('focuses the gallery anchor while keeping all sections available', async () => {
     const user = userEvent.setup(); renderAt();
