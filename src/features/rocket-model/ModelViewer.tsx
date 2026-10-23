@@ -27,6 +27,7 @@ function disposeObject(root: THREE.Object3D): void {
 export default function ModelViewer() {
   const hostRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<Status>('loading');
+  const [dragged, setDragged] = useState(false);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -57,6 +58,8 @@ export default function ModelViewer() {
     controls.enableZoom = false;
     controls.enablePan = false;
     controls.enableDamping = true;
+    controls.autoRotate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    controls.autoRotateSpeed = 1.6;
 
     const ambient = new THREE.AmbientLight(0xffffff, 1.1);
     const key = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -133,8 +136,9 @@ export default function ModelViewer() {
   }, []);
 
   return <div className="model-frame">
-    <div className="model-canvas" ref={hostRef} />
+    <div className="model-canvas" ref={hostRef} onPointerDown={() => setDragged(true)} />
     {status === 'loading' && <div className="model-overlay" role="status"><span className="loading-dot" />Loading rocket…</div>}
     {status === 'error' && <div className="model-overlay" role="status">3D view isn’t available on this device — showing the model page instead.</div>}
+    {status === 'ready' && <span className={`model-hint${dragged ? ' is-hidden' : ''}`} aria-hidden="true">Drag to rotate</span>}
   </div>;
 }
