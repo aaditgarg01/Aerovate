@@ -50,7 +50,7 @@ npm run preview    # serve the production build
 - Rocket cursor with smooth steering, flame and exhaust, magnetic controls, hover labels and card spotlights on supported desktop pointers.
 - Interactive text layer: headings roll to a glowing copy, HUD labels decode, body copy is torch-lit under the pointer and buttons catch a light sweep (fine pointers only). Rocket flights with flame, shock diamonds, sparks and smoke launch from the footer's back-to-top button and hop between years on the POC timeline. All of it is off with reduced motion.
 - Thrust Tech introduction, animated logo that replays on return, team imagery and a scroll-driven collaboration trajectory.
-- Workshop overview with a rocket blueprint, separate day-one and day-two cards, and a compact event briefing with dates, hours, venues and team size.
+- Workshop overview with a cursor-responsive rocket blueprint, separate day-one and day-two cards, and a compact event briefing with dates, hours, venues and team size.
 - Glimpses gallery with globe presentation, photograph browsing and a lightbox for approved images.
 - Native scrolling without wheel interception; offscreen/background animation suspension, capped decorative drawing and cached gallery/marquee measurements.
 - Shared design tokens, UI components, loading/empty/error states and reduced-motion support.
@@ -63,7 +63,7 @@ npm run preview    # serve the production build
 | --- | --- |
 | Foundation, navigation and footer | Implemented and integrated. |
 | Landing and event description | Sunset hero and Aerovate 3.0 workshop overview implemented: 11–12 September 2026, 9 AM–5 PM, VOC Gallery & Men’s Outdoor Stadium, teams of 4–5. Covers rocketry fundamentals, OpenRocket simulation, building with provided materials and a supervised launch. |
-| Rocket | The hero rocket uses image assets; a separate interactive 3D rocket model section follows the event overview. The SVG fallback and original component contract remain available. |
+| Rocket | The hero rocket uses image assets; a separate interactive 3D rocket model section follows the event overview. It loads near the viewport, pauses GPU rendering offscreen/in background tabs, and renders on demand with reduced motion. The SVG fallback and original component contract remain available. |
 | Scroll and cursor | Native scrolling, frame-rate-independent cursor smoothing and reduced-motion fallbacks; decorative loops pause offscreen and in background tabs. |
 | Thrust Tech | Implemented, including repeatable logo entrance and collaboration animation. |
 | Past-year POCs | Interactive 2024–2026 timeline (one POC per year) with keyboard, swipe and previous/next controls; spotlight card with photo fallback, profile link and event experience. Placeholders marked "Details pending" are shown until approved names, photos, links and experiences are added to `src/features/pocs/data.ts`. |
