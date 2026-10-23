@@ -191,3 +191,15 @@
   .hero::after { background: linear-gradient(90deg, #0b20362e, transparent 75%); }
   .hero-rocket-stage { inset: 42% -3% 0 32%; }
 }
+
+/* Blueprint inspection is pointer-driven, with composited parallax and no idle loop. */
+.experience-blueprint { position: relative; isolation: isolate; transform: perspective(900px) rotateX(var(--bp-tilt-x, 0deg)) rotateY(var(--bp-tilt-y, 0deg)); transition: transform .22s ease-out, border-color .22s; }
+.experience-blueprint::before { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: radial-gradient(220px at var(--bp-glow-x, 50%) var(--bp-glow-y, 50%), #63d5ef12, transparent); opacity: 0; transition: opacity .22s; }
+.experience-blueprint[data-blueprint-active] { border-color: #84d6f06b; will-change: transform; }
+.experience-blueprint[data-blueprint-active]::before { opacity: 1; }
+.experience-blueprint-rocket { transform-origin: 240px 174px; transform: translate(var(--bp-x, 0px), var(--bp-y, 0px)) rotate(var(--bp-roll, 0deg)); transition: transform .18s ease-out; }
+.experience-blueprint-probe { opacity: 0; pointer-events: none; transform: translate(var(--bp-probe-x, 240px), var(--bp-probe-y, 174px)); transition: opacity .15s; }
+.experience-blueprint[data-blueprint-active] .experience-blueprint-probe { opacity: .65; }
+.experience-blueprint figcaption .experience-blueprint-hint { display: none; margin-left: auto; font-size: 8px; letter-spacing: .08em; color: #8eaac0; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) { .experience-blueprint figcaption .experience-blueprint-hint { display: inline; } .experience-blueprint figcaption > span:last-child { margin-left: 4px; } }
+@media (prefers-reduced-motion: reduce) { .experience-blueprint, .experience-blueprint-rocket { transform: none; transition: none; } .experience-blueprint-probe, .experience-blueprint::before { display: none; } }

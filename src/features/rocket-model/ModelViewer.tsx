@@ -4,6 +4,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import './rocket-model.css';
+import { visibleAnimation } from '../space/visibleAnimation';
 
 const ASSET_BASE = '/assets/rocket-model/';
 const CANVAS_LABEL = 'Interactive 3D model of the VIT Stellar rocket. Drag to rotate.';
@@ -42,7 +43,8 @@ export default function ModelViewer() {
     }
 
     let disposed = false;
-    let raf = 0;
+    let animation: ReturnType<typeof visibleAnimation> | null = null;
+    let drawing = false, failed = false, sizeReady = false;
     let model: THREE.Object3D | null = null;
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -57,8 +59,9 @@ export default function ModelViewer() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableZoom = false;
     controls.enablePan = false;
-    controls.enableDamping = true;
-    controls.autoRotate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    controls.enableDamping = !motion.matches;
+    controls.autoRotate = !motion.matches;
     controls.autoRotateSpeed = 1.6;
 
     const ambient = new THREE.AmbientLight(0xffffff, 1.1);
@@ -71,24 +74,39 @@ export default function ModelViewer() {
     const resize = () => {
       const width = host.clientWidth;
       const height = host.clientHeight;
-      if (!width || !height) return;
+      sizeReady = width > 0 && height > 0;
+      if (!sizeReady) { animation?.wake(); return; }
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+      animation?.wake();
     };
     resize();
-    const observer = new ResizeObserver(resize);
-    observer.observe(host);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
+    observer?.observe(host);
+    window.addEventListener('resize', resize);
 
-    // ponytail: always-on rAF; switch to render-on-demand if battery/thermals ever matter
-    const tick = () => {
-      controls.update();
-      renderer.render(scene, camera);
-      raf = requestAnimationFrame(tick);
+    // Keep GPU work confined to the visible model; manual reduced-motion views render on demand.
+    animation = visibleAnimation(host, (_now, seconds) => {
+      drawing = true;
+      let changed: boolean;
+      try {
+        changed = controls.update(seconds);
+        renderer.render(scene, camera);
+      } finally { drawing = false; }
+      if (!controls.autoRotate && !changed) return false;
+    }, { canRun: () => model !== null && !failed && sizeReady });
+    const invalidate = () => { if (!drawing) animation?.wake(); };
+    controls.addEventListener('change', invalidate);
+    const onMotion = () => {
+      controls.autoRotate = !motion.matches;
+      controls.enableDamping = !motion.matches;
+      animation?.wake();
     };
+    motion.addEventListener('change', onMotion);
 
     const fail = () => {
-      if (!disposed) setStatus('error');
+      if (!disposed) { failed = true; animation?.wake(); setStatus('error'); }
     };
 
     new MTLLoader().setPath(ASSET_BASE).load('rocket.mtl', (materials) => {
@@ -120,14 +138,17 @@ export default function ModelViewer() {
         pivot.add(object);
         scene.add(pivot);
         setStatus('ready');
-        tick();
+        animation?.wake();
       }, undefined, fail);
     }, undefined, fail);
 
     return () => {
       disposed = true;
-      cancelAnimationFrame(raf);
-      observer.disconnect();
+      animation?.dispose();
+      observer?.disconnect();
+      window.removeEventListener('resize', resize);
+      motion.removeEventListener('change', onMotion);
+      controls.removeEventListener('change', invalidate);
       controls.dispose();
       if (model) disposeObject(model);
       renderer.dispose();

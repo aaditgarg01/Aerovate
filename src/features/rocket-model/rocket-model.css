@@ -8,3 +8,5 @@
 @keyframes hint-pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.04); } }
 @media (prefers-reduced-motion: reduce) { .model-hint { animation: none; } }
 @media (max-width: 600px) { .model-frame { aspect-ratio: 1 / 1; max-height: none; } }
+
+.model-canvas:not([data-animating="true"]) ~ .model-hint { animation-play-state: paused; }
