@@ -44,6 +44,7 @@ export const navigation = [
   { label: 'The event', to: '/#event' },
   { label: 'Past POCs', to: '/#pocs' },
   { label: 'Glimpses', to: '/#glimpses' },
+  { label: 'Rocket', to: '/#rocket-model' },
 ] as const;
 
-export const sections = { home: 'home', thrust: 'thrust-tech', event: 'event', pocs: 'pocs', glimpses: 'glimpses', contact: 'contact' } as const;
+export const sections = { home: 'home', thrust: 'thrust-tech', event: 'event', pocs: 'pocs', glimpses: 'glimpses', rocketModel: 'rocket-model', contact: 'contact' } as const;

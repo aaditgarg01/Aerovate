@@ -9,6 +9,7 @@ import { GlimpsesSection } from '../features/glimpses/GlimpsesSection';
 import { ScrollMarquee, ScrollMotion } from '../features/space/ScrollMotion';
 import { CursorLayer } from '../features/space/Cursor';
 import { TextFx } from '../features/fx/TextFx';
+import { RocketModelSection } from '../features/rocket-model/RocketModelSection';
 import { ErrorBoundary } from './ErrorBoundary';
 import { RouteEffects } from './RouteEffects';
 
@@ -25,6 +26,7 @@ export function App() {
               <EventSection />
               <PocsSection />
               <GlimpsesSection />
+              <RocketModelSection />
             </div>
           </div>
         </>
