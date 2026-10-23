@@ -3,6 +3,7 @@ import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { ActionLink } from '../components/ui/Primitives';
 import { LandingSection, EventSection } from '../features/landing/LandingSection';
+import { AboutSection, HistorySection } from '../features/landing/AboutSections';
 import { ThrustTechSection } from '../features/thrust-tech/ThrustTechSection';
 import { PocsSection } from '../features/pocs/PocsSection';
 import { GlimpsesSection } from '../features/glimpses/GlimpsesSection';
@@ -24,9 +25,11 @@ export function App() {
             <ThrustTechSection />
             <div className="page-container">
               <EventSection />
+              <AboutSection />
+              <HistorySection />
+              <RocketModelSection />
               <PocsSection />
               <GlimpsesSection />
-              <RocketModelSection />
             </div>
           </div>
         </>
