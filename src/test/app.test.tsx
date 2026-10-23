@@ -147,8 +147,8 @@ describe('Compact team footer and shared menu', () => {
   it('shows names and supplied profile links without contribution descriptions', () => {
     renderAt();
     const footer = document.querySelector('footer')!;
-    expect(within(footer).getAllByRole('link', { name: /on GitHub/ })).toHaveLength(6);
-    expect(within(footer).getAllByRole('link', { name: /on LinkedIn/ })).toHaveLength(6);
+    expect(within(footer).getAllByRole('link', { name: /on GitHub/ })).toHaveLength(7);
+    expect(within(footer).getAllByRole('link', { name: /on LinkedIn/ })).toHaveLength(7);
     expect(within(footer).getByRole('link', { name: /Aadit Garg on LinkedIn/ })).toHaveAttribute('href', 'https://www.linkedin.com/in/aadit-garg22/');
     expect(within(footer).getByRole('link', { name: /Rishit Aggarwal on LinkedIn/ })).toHaveAttribute('href', 'https://www.linkedin.com/in/rishit-aggarwal-88504b419/');
     for (const link of footer.querySelectorAll('.credit-profiles a')) {

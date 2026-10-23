@@ -35,6 +35,10 @@ export const site = {
       { label: 'GitHub', url: 'https://github.com/ayushbhuyan2008' },
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/ayush-animesh-bhuyan-b732b4377' },
     ] },
+    { name: 'Krishna VP', profiles: [
+      { label: 'GitHub', url: 'https://github.com/VPK570' },
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/vp-krishna' },
+    ] },
   ],
 } as const;
 

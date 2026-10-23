@@ -18,6 +18,7 @@ Built together by the **Aerovate Tech Team**.
 | [Rishit Aggarwal](https://github.com/aggarwalrishit9) · [LinkedIn](https://www.linkedin.com/in/rishit-aggarwal-88504b419/) | Thrust Tech section. |
 | [Sushant Singh](https://github.com/singhsushant4684-eng) · [LinkedIn](https://www.linkedin.com/in/sushant-singh-663301378/) | Glimpses gallery. |
 | [Ayush Bhuyan](https://github.com/ayushbhuyan2008) · [LinkedIn](https://www.linkedin.com/in/ayush-animesh-bhuyan-b732b4377) | Past-year POC timeline. |
+| [Krishna VP](https://github.com/VPK570) · [LinkedIn](https://www.linkedin.com/in/vp-krishna) | 3D rocket model. |
 
 Website credits and profile links are configured in [`src/config/site.ts`](src/config/site.ts). The links are platform-neutral: Each person can have GitHub and LinkedIn profiles; the footer shows names and links without contribution descriptions. Keep this table in sync when changing contributor details.
 
@@ -60,14 +61,14 @@ npm run preview    # serve the production build
 | Area | Current status |
 | --- | --- |
 | Foundation, navigation and footer | Implemented and integrated. |
-| Landing and event description | Sunset hero implemented; final programme, dates and venue are pending. |
-| Rocket | The hero rocket uses image assets; the SVG fallback and component contract remain available for future 3D model integration. A 3D model is not yet mounted. |
+| Landing and event description | Sunset hero and Aerovate 3.0 workshop overview implemented: 11–12 September 2026, 9 AM–5 PM, VOC Gallery & Men’s Outdoor Stadium, teams of 4–5. Covers rocketry fundamentals, OpenRocket simulation, building with provided materials and a supervised launch. |
+| Rocket | The hero rocket uses image assets; a separate interactive 3D rocket model section follows the event overview. The SVG fallback and original component contract remain available. |
 | Scroll and cursor | Native scrolling, frame-rate-independent cursor smoothing and reduced-motion fallbacks; decorative loops pause offscreen and in background tabs. |
 | Thrust Tech | Implemented, including repeatable logo entrance and collaboration animation. |
 | Past-year POCs | Interactive 2024–2026 timeline (one POC per year) with keyboard, swipe and previous/next controls; spotlight card with photo fallback, profile link and event experience. Placeholders marked "Details pending" are shown until approved names, photos, links and experiences are added to `src/features/pocs/data.ts`. |
 | Glimpses | Gallery interface implemented; approved historical photographs and captions are pending. |
 
-Games and backend work are deferred. Dates, venue, POC names and historical photographs have not been invented. The hero artwork is a design background, not documentary event photography. Event details should be approved before the public announcement.
+Games and backend work are deferred. POC names and historical photographs remain pending; the workshop date, time, venue and team size are supplied event details. The hero artwork is a design background, not documentary event photography. Event details should be approved before the public announcement.
 
 ## Team workflow
 

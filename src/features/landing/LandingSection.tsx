@@ -31,7 +31,22 @@ function Chars({ text }: { text: string }) {
 }
 
 export function EventSection() {
-  return <Section id="event" number="02" eyebrow="The experience" title="From a spark of curiosity to a new perspective.">
-    <div className="event-grid"><p className="section-copy">Aerovate brings the excitement of rocketry closer. The full event programme, schedule and participation details will be announced here.</p><dl className="event-facts"><div><dt>Event</dt><dd>Aerovate</dd></div><div><dt>Date & venue</dt><dd>To be announced</dd></div><div><dt>Explore the legacy</dt><dd><Link to="/#pocs">Meet past POCs <Icon name="diagonal" width="16" height="16" /></Link></dd></div></dl></div>
+  return <Section id="event" number="02" eyebrow="The experience" title="Design. Simulate. Build. Launch.">
+    <div className="event-grid">
+      <div className="event-overview">
+        <h3 className="eyebrow">Overview</h3>
+        <p className="section-copy">Take your first step into model rocketry with this two-day, hands-on aerospace workshop (partnered with Thrust Tech).</p>
+        <p className="section-copy">Learn the fundamentals of aerodynamics, rocket stability, propulsion, and rocket design, then design and simulate your own rocket using OpenRocket. On Day 2, build your model rocket with the provided materials and put it to the test in a <strong>supervised launch</strong>.</p>
+        <p className="event-closing">Experience aerospace engineering from <strong>concept to launch</strong> at Aerovate 3.0.</p>
+      </div>
+      <dl className="event-facts">
+        <div><dt>Event</dt><dd>Aerovate 3.0</dd></div>
+        <div><dt>Date</dt><dd><time dateTime="2026-09-11">11</time>–<time dateTime="2026-09-12">12 September 2026</time></dd></div>
+        <div><dt>Time</dt><dd><time dateTime="09:00">9 AM</time>–<time dateTime="17:00">5 PM</time></dd></div>
+        <div><dt>Venue</dt><dd>VOC Gallery &amp; Men’s Outdoor Stadium</dd></div>
+        <div><dt>Team size</dt><dd>4–5 members</dd></div>
+        <div><dt>Explore the legacy</dt><dd><Link to="/#pocs">Meet past POCs <Icon name="diagonal" width="16" height="16" /></Link></dd></div>
+      </dl>
+    </div>
   </Section>;
 }
